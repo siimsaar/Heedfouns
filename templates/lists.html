@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% set active_page = "lists" %}
+
+{% block page_content %}
+    <h1>Latest Pitchfork reviews</h1>
+    <table class="table">
+    <thead>
+    <tr>
+    <th>Title</th>
+    <th>Options</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for i in p4k_reviews %}
+        <tr>
+    <td>{{ i }}</td>
+           <td><button type="submit" value="{{ i }}" class="btn btn-default" id="dlbttn">Download</button></td>
+        </tr>
+    {% endfor %}
+    </tbody>
+    </table>
+{% endblock %}
+
+{% block scripts %}
+    {{super()}}
+<script src="{{url_for('.static', filename='onClick.js')}}"></script>
+{% endblock %}
