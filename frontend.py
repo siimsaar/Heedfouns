@@ -25,7 +25,14 @@ def index():
 @app.route('/api', methods=['GET', 'POST'])
 def apisel():
     global api_s
+    if request.form['apiselec'] == "getactive":
+        try:
+            api_s
+        except:
+            api_s = conf.default_search_api
+        return api_s
     api_s = request.form['apiselec']
+    return api_s
 
 @app.route('/lists')
 @cache.cached(timeout=3600)
@@ -57,15 +64,12 @@ def search():
     try:
         search_provider = api_s
     except:
-        print "search provider not set"
+        print "default search provider not set"
     try:
         if search_provider == "lastfm":
             lastfm_search(message, srchquery)
         elif search_provider == "discogs":
             discogs_search(message, srchquery)
-        else:
-            print "using default search api"
-            lastfm_search(message, srchquery)
     except (IndexError, pylast.WSError):
         failedsearch = True
         return render_template("index.html", failedsearch=failedsearch)

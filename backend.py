@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import transmissionrpc
 import ast
+import os
 from KickassAPI import * # fix magnet_link var in KickassAPI.py for it to work
 from selenium import webdriver
 from qbittorrent import Client
