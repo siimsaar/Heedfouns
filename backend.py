@@ -1,15 +1,9 @@
 # -*- coding: utf-8 -*-
 import transmissionrpc
-import urllib2
-from bs4 import BeautifulSoup
-import os
-import traceback
 import ast
-import requests
 from KickassAPI import * # fix magnet_link var in KickassAPI.py for it to work
 from selenium import webdriver
 from qbittorrent import Client
-from lxml import etree
 from selenium.common.exceptions import NoSuchElementException
 driver = webdriver.PhantomJS(desired_capabilities={'phantomjs.page.settings.loadImages': "false"})
 magnet_prefix = "magnet:?xt=urn:btih:"

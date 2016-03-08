@@ -1,8 +1,10 @@
+# -*- coding: utf-8 -*-
 from flask import Flask, render_template, request
 from flask_cache import Cache
 from flask_bootstrap import Bootstrap
 import urllib2
 import string
+import pylast
 from lxml import etree
 import discogs_client
 import backend
@@ -19,6 +21,11 @@ discg = discogs_client.Client
 @app.route('/', methods=['GET', 'POST'])
 def index():
     return render_template("index.html")
+
+@app.route('/api', methods=['GET', 'POST'])
+def apisel():
+    global api_s
+    api_s = request.form['apiselec']
 
 @app.route('/lists')
 @cache.cached(timeout=3600)
@@ -46,16 +53,38 @@ def settings():
 def search():
     message = request.form['action']
     srchquery = []
-    discg = discogs_client.Client('app/0.1', user_token='LfYzUfQpWhiJNnmtVQZJKuTVipDPebjIubijkzoT')
+    search_provider = None
     try:
-        db_search = discg.search(string.capwords(message), type='artist')[0].releases.page(1)
-        srchquery.append(string.capwords(message) + " - Discography")
-        for i in xrange(0, len(db_search)):
-            srchquery.append(string.capwords(message) + " - " + db_search[i].title)
-    except IndexError:
+        search_provider = api_s
+    except:
+        print "search provider not set"
+    try:
+        if search_provider == "lastfm":
+            lastfm_search(message, srchquery)
+        elif search_provider == "discogs":
+            discogs_search(message, srchquery)
+        else:
+            print "using default search api"
+            lastfm_search(message, srchquery)
+    except (IndexError, pylast.WSError):
         failedsearch = True
         return render_template("index.html", failedsearch=failedsearch)
     return render_template('search.html', srchquery=srchquery)
+
+def discogs_search(message, srchquery):
+    discg = discogs_client.Client('app/0.1', user_token='LfYzUfQpWhiJNnmtVQZJKuTVipDPebjIubijkzoT')
+    db_search = discg.search(string.capwords(message), type='artist')[0].releases.page(1)
+    srchquery.append(string.capwords(message) + " - Discography")
+    for i in xrange(0, len(db_search)):
+        srchquery.append(string.capwords(message) + " - " + db_search[i].title)
+
+def lastfm_search(message, srchquery):
+    API_KEY = "d5e9e669b3a12715c860607e3ddce016"
+    API_SECRET = "44c1a2333db8fe1b083716a614fa569a"
+    lfm = pylast.LastFMNetwork(api_key=API_KEY, api_secret=API_SECRET)
+    artist = lfm.get_artist(message).get_top_albums(limit=10)
+    for i in artist:
+        srchquery.append(str(i[0]).decode('utf-8'))
 
 @app.route('/dl', methods=['GET', 'POST'])
 def download():

@@ -26,10 +26,13 @@
         </div>
                     <div class=".col-md-4 text-center">
                 <h4 class="text-center">Search API</h4>
-                        <button type="button" class="btn btn-defaul activet">Discogs</button>
-                        <button type="button" class="btn btn-default disabled">LastFM</button>
-                        <button type="button" class="btn btn-default disabled">LibreFM</button>
+                        <button type="button" name="apibttn" value="discogs" class="btn btn-default">Discogs</button>
+                        <button type="button" name="apibttn" value="lastfm" class="btn btn-default">LastFM</button>
             </div>
 	</div>
     </form>
+{% endblock %}
+{% block scripts %}
+    {{super()}}
+<script src="{{url_for('.static', filename='apipost.js')}}"></script>
 {% endblock %}
