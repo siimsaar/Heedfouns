@@ -6,5 +6,19 @@
 <div class="page-header">
     <h1>Status</h1>
 </div>
-    <p>it doesnt work yet!</p>
+    <table class="table">
+    <thead>
+    <tr>
+    <th>Title</th>
+    <th>Status</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for i, j in album_history.iteritems() %}
+        <tr>
+    <td>{{ i }}</td><td>{{ j }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+    </table>
 {% endblock %}

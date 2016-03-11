@@ -44,13 +44,17 @@ class ruTracker():
         password.send_keys(self.password_rutracker)
 
         if self.check_exists_by_xpath(r'//*[@id="login-form"]/table/tbody/tr[2]/td/div/table/tbody/tr[3]/td[2]/div[1]/img'):
-            print "✗ keked"
+            print "✗ Too many invalid logins, captcha found."
             self.tearDown()
         else:
             driver.find_element_by_css_selector(
                 r'#login-form > table > tbody > tr:nth-child(2) > td > div > table > tbody > tr:nth-child(3) > td > input').click()
-        print "✓ Successfully logged in, saving cookie"
-        open("cookie.dat", 'w').write(str(driver.get_cookie("bb_data")))
+        if driver.get_cookie("bb_data") is not None:
+            print "✓ Successfully logged in, saving cookie"
+            open("cookie.dat", 'w').write(str(driver.get_cookie("bb_data")))
+        else:
+            print "✗ Invalid ruTracker login data"
+            raise ValueError("Unable to log in")
 
     def getAlbums(self, album, client):
         print "• Searching for torrents"
@@ -85,13 +89,17 @@ class ruTracker():
                 self.establishRPC(dl_link, client)
             except:
                 print "✗ Unable to establish connection"
+                raise IOError
         except:
             print "✗ No torrents found in ruTracker"
             if self.fallback:
                 try:
                     self.fallback_tracker(client, album)
+                except ReferenceError:
+                    raise ReferenceError
                 except:
                     print "✗ Unable to establish connection"
+                    raise IOError
 
     def fallback_tracker(self, client, album):
         print "• Searching from fallback"
@@ -100,8 +108,9 @@ class ruTracker():
             t = Search(album).page(1).order(ORDER.SEED).list()
             print "✓ Found %s" % t[0].__getattribute__("name")
             self.establishRPC(t[0].__getattribute__('magnet_link'), client)
-        except ValueError:
+        except:
             print "✗ No torrents found in Kat"
+            raise ReferenceError
 
     def establishRPC(self, magnet_link, client):
         print "• Establishing connection to", client

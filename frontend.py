@@ -1,20 +1,31 @@
 # -*- coding: utf-8 -*-
 from flask import Flask, render_template, request
+from flask_sqlalchemy import SQLAlchemy
 from flask_cache import Cache
 from flask_bootstrap import Bootstrap
+from collections import OrderedDict
 import urllib2
 import string
 import pylast
+import os
 from lxml import etree
 import discogs_client
 import backend
 import conf
 import random
 
+##FLASK
 app = Flask(__name__)
-cache = Cache(app,config={'CACHE_TYPE': 'simple'})
+cache = Cache(app, config={'CACHE_TYPE': 'simple'})
+basedir = os.path.abspath(os.path.dirname(__file__))
+
+##BOOTSTRAP
 Bootstrap(app)
-backend = backend
+
+## SQLALCHEMY
+db = SQLAlchemy(app)
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'history.db')
 
 discg = discogs_client.Client
 
@@ -102,12 +113,41 @@ def download():
         qbittorrent_password=conf.qbittorrent_password,
         transmission_url=conf.transmission_url,
         qbittorrent_url=conf.qbittorrent_url)
-    dlalbum.getCookies()
-    dlalbum.getAlbums(result, client=conf.torrent_client)
+    try:
+        dlalbum.getCookies()
+        dlalbum.getAlbums(result, client=conf.torrent_client)
+        rq_album = Album(result, "Added")
+    except ValueError:
+        print "• Fix your configuration"
+        rq_album = Album(result, "Fail: Configuration error")
+    except ReferenceError:
+        rq_album = Album(result, "Fail: Unable to find album")
+    except IOError:
+        rq_album = Album(result, "Fail: Unable to add to torrent client")
+    finally:
+        db.session.add(rq_album)
+        db.session.commit()
+    return "<placeholder>"
 
 @app.route('/status')
 def queue():
-    return render_template("status.html")
+    wholedb = Album.query.all()
+    album_history = OrderedDict()
+    for i in reversed(xrange(len(wholedb))):
+        album_history[wholedb[i].album_name] = wholedb[i].status
+    return render_template("status.html", album_history=album_history)
+
+class Album(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    album_name = db.Column(db.TEXT , unique=True)
+    status = db.Column(db.TEXT, unique=False)
+
+    def __init__(self, album_name, status):
+        self.album_name = album_name
+        self.status = status
+
+    def __repr__(self):
+        return '<Album %r>' % self.album_name
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
