@@ -11,14 +11,29 @@
     <tr>
     <th>Title</th>
     <th>Status</th>
+        <th>Function</th>
     </tr>
     </thead>
     <tbody>
     {% for i, j in album_history.iteritems() %}
-        <tr>
-    <td>{{ i }}</td><td>{{ j }}</td>
+        <tr id="{{ i }}">
+    <td>{{ i }}</td><td>
+            {% if "Fail" in j %}
+            <span class="label label-danger"> Error</span>
+                {% elif "Added" in j %}
+                <span class="label label-success"> Success</span>
+{% endif %}{{ j }}</td>
+        <td><button type="button" value="{{ i }}" class="btn btn-danger btn-xs">Remove</button>
+        {% if "Fail" in j %}
+            <button type="button" value="{{ i }}" class="btn btn-primary btn-xs">Retry</button>
+            {% endif %}
+        </td>
         </tr>
     {% endfor %}
     </tbody>
     </table>
+{% endblock %}
+{% block scripts %}
+    {{super()}}
+<script src="{{url_for('.static', filename='status.js')}}"></script>
 {% endblock %}

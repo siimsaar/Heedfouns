@@ -2,18 +2,19 @@
 import transmissionrpc
 import ast
 import os
-from KickassAPI import * # fix magnet_link var in KickassAPI.py for it to work
+from KickassAPI import *  # fix magnet_link var in KickassAPI.py for it to work
 from selenium import webdriver
 from qbittorrent import Client
 from selenium.common.exceptions import NoSuchElementException
+
 driver = webdriver.PhantomJS(desired_capabilities={'phantomjs.page.settings.loadImages': "false"})
 magnet_prefix = "magnet:?xt=urn:btih:"
 types = {"FLAC", "ALAC", "AAC", "MP3"}
 
 albums = []
 
-class ruTracker():
 
+class TorrentDl():
     def __init__(self, user_rutracker,
                  password_rutracker,
                  transmission_user=None,
@@ -43,7 +44,8 @@ class ruTracker():
         username.send_keys(self.user_rutracker)
         password.send_keys(self.password_rutracker)
 
-        if self.check_exists_by_xpath(r'//*[@id="login-form"]/table/tbody/tr[2]/td/div/table/tbody/tr[3]/td[2]/div[1]/img'):
+        if self.check_exists_by_xpath(
+                r'//*[@id="login-form"]/table/tbody/tr[2]/td/div/table/tbody/tr[3]/td[2]/div[1]/img'):
             print "✗ Too many invalid logins, captcha found."
             self.tearDown()
         else:
@@ -73,15 +75,18 @@ class ruTracker():
         seedcount = list()
         for y in xrange(1, len(torrents) + 1):
             try:
-                seedcount.append(driver.find_element_by_xpath("//*[@id='tor-tbl']/tbody/tr[" + str(y) + "]/td[7]/b").text)
+                seedcount.append(
+                    driver.find_element_by_xpath("//*[@id='tor-tbl']/tbody/tr[" + str(y) + "]/td[7]/b").text)
             except NoSuchElementException:
                 seedcount.append("DEAD")
         for i in xrange(0, len(torrents)):
-                    for k in types:
-                        if album.encode('utf-8').lower() in torrents[i].text.encode('utf-8').lower(): # filter everything out that doesnt match the exact searched string
-                            if k in torrents[i].text:
-                                if seedcount[i] is not "DEAD":
-                                    print "%d | %s [QUALITY = %s | SEEDS = %s | SIZE = %s]" % (i+1, torrents[i].text, k, seedcount[i], size[i].text)
+            for k in types:
+                if album.encode('utf-8').lower() in torrents[i].text.encode(
+                        'utf-8').lower():  # filter everything out that doesnt match the exact searched string
+                    if k in torrents[i].text:
+                        if seedcount[i] is not "DEAD":
+                            print "%d | %s [QUALITY = %s | SEEDS = %s | SIZE = %s]" % (
+                            i + 1, torrents[i].text, k, seedcount[i], size[i].text)
         try:
             torrents[0].click()
             dl_link = driver.find_element_by_xpath(r'//*[@id="tor-hash"]')
