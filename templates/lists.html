@@ -17,8 +17,9 @@
     {% for i in p4k_reviews %}
         <tr>
     <td>{{ i }}</td>
-           <td><button type="submit" value="{{ i }}" class="btn btn-default" id="dlbttn">
-               <span class="glyphicon glyphicon-download" aria-hidden="true"></span> Download</button></td>
+           <td><button type="submit" value="{{ i }}" class="btn btn-primary btn-xs" id="dlbttn">Download</button>
+           <button type="submit" value="{{ i }}" class="btn btn-info btn-xs" id="info">Info</button>
+           <button type="submit" value="{{ i }}" class="btn btn-danger btn-xs" id="info">Review</button></td>
         </tr>
     {% endfor %}
     </tbody>

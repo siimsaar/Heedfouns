@@ -10,6 +10,7 @@ from collections import OrderedDict
 from flask_login import LoginManager, login_user, login_required, UserMixin
 import urllib2
 import string
+import threading
 import pylast
 import os
 from lxml import etree
@@ -127,6 +128,11 @@ def lastfm_search(message, srchquery, covers):
 @login_required
 def download():
     result = request.form['alname']
+    threading.Thread(target=initDl, args=(result,)).start()
+    return '', 204
+
+
+def initDl(result):
     dlalbum = torrentdler.TorrentDl(
         conf.rutracker_user,
         conf.rutracker_password,
@@ -148,9 +154,11 @@ def download():
     except IOError:
         rq_album = Album(result, "Fail: Unable to add to torrent client")
     finally:
-        db.session.add(rq_album)
-        db.session.commit()
-    return '', 204
+        try:
+            db.session.add(rq_album)
+            db.session.commit()
+        except:
+            pass
 
 
 @app.route('/status')
@@ -181,6 +189,7 @@ def login():
         if user is not None:
             login_user(user, remember=True)
             return redirect(url_for("index"))
+        flash("Invalid username or password", 'error')
     return render_template("login.html", form=form)
 
 

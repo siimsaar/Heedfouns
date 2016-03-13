@@ -15,7 +15,8 @@
     {% for i in srchquery %}
         <tr>
     <td>{{ i }}</td>
-           <td><button type="submit" value="{{ i }}" class="btn btn-default" id="dlbttn"><span class="glyphicon glyphicon-download" aria-hidden="true"></span> Download</button></td>
+           <td><button type="submit" value="{{ i }}" class="btn btn-primary btn-xs" id="dlbttn">Download</button>
+               <button type="submit" value="{{ i }}" class="btn btn-info btn-xs" id="info">Info</button></td>
         </tr>
     {% endfor %}
     </tbody>

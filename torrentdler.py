@@ -2,6 +2,7 @@
 import transmissionrpc
 import ast
 import os
+import traceback
 from KickassAPI import *  # fix magnet_link var in KickassAPI.py for it to work
 from selenium import webdriver
 from qbittorrent import Client
@@ -114,6 +115,7 @@ class TorrentDl():
             print "✓ Found %s" % t[0].__getattribute__("name")
             self.establishRPC(t[0].__getattribute__('magnet_link'), client)
         except:
+            traceback.print_exc()
             print "✗ No torrents found in Kat"
             raise ReferenceError
 

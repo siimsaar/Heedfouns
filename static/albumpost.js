@@ -1,5 +1,5 @@
 function addtoev() {
-    var bns = document.getElementsByTagName("button");
+    var bns = document.getElementsByClassName("btn btn-primary btn-xs");
     for (i = 0; i < bns.length; i++) {
         bns[i].addEventListener("click", function () {
             var val = $(this).val();

@@ -22,8 +22,9 @@
             <span class="label label-danger"> Error</span>
                 {% elif "Added" in j %}
                 <span class="label label-success"> Success</span>
-{% endif %}{{ j }}</td>
+{% endif %}{{ j.replace("Fail:", "") }}</td>
         <td><button type="button" value="{{ i }}" class="btn btn-danger btn-xs">Remove</button>
+        <button type="button" value="{{ i }}" class="btn btn-info btn-xs">Edit</button>
         {% if "Fail" in j %}
             <button type="button" value="{{ i }}" class="btn btn-primary btn-xs">Retry</button>
             {% endif %}
