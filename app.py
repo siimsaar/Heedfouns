@@ -11,6 +11,7 @@ from flask_login import LoginManager, login_user, login_required, UserMixin
 import urllib2
 import string
 import threading
+import Queue
 import pylast
 import os
 from lxml import etree
@@ -38,7 +39,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'history.db')
 
 discg = discogs_client.Client
-
+q = Queue.Queue()
 
 @app.route('/', methods=['GET', 'POST'])
 @login_required
@@ -61,22 +62,28 @@ def apisel():
 
 @app.route('/lists')
 @login_required
-@cache.cached(timeout=3600)
+#@cache.cached(timeout=3600)
 def lists():
-    site = urllib2.urlopen(r'http://pitchfork.com/reviews/albums/1/')
+    ureq = urllib2.Request(r'http://pitchfork.com/reviews/albums', headers={'User-Agent' : "asdf"})
+    site = urllib2.urlopen(ureq)
     parser = etree.HTMLParser()
     tree = etree.parse(site, parser)
     p4k_reviews = []
-    for i in xrange(1, 6):
-        for j in xrange(1, 5):
+    covers = []
+    genre = []
+    for i in xrange(1, 25):
             try:
-                h1 = tree.xpath('//*[@id="main"]/ul/li[%d]/ul/li[%d]/a/div[2]/h1' % (i, j))[0].text
-                h2 = tree.xpath('//*[@id="main"]/ul/li[%d]/ul/li[%d]/a/div[2]/h2' % (i, j))[0].text
+                h1 = tree.xpath('//*[@id="reviews"]/div[2]/div/div[1]/div[1]/div/div/div[%d]/a/div[2]/ul/li' % (i))[0].text
+                h2 = tree.xpath('//*[@id="reviews"]/div[2]/div/div[1]/div[1]/div/div/div[%d]/a/div[2]/h2' % (i))[0].text
+                cover = tree.xpath('//*[@id="reviews"]/div[2]/div/div[1]/div[1]/div/div/div[%d]/a/div[1]/div/img//@src' % (i))[0]
+                genres = tree.xpath('//*[@id="reviews"]/div[2]/div/div[1]/div[1]/div/div/div[%d]/div/ul[1]/li/a' % i)[0].text
                 appendable = '%s - %s' % (h1, h2)
                 p4k_reviews.append(appendable)
+                genre.append(genres)
+                covers.append(str(cover))
             except (TypeError):
                 pass
-    return render_template("lists.html", p4k_reviews=p4k_reviews)
+    return render_template("lists.html", p4k_reviews=p4k_reviews, covers=covers, genre=genre)
 
 
 @app.route('/settings')
@@ -128,37 +135,51 @@ def lastfm_search(message, srchquery, covers):
 @login_required
 def download():
     result = request.form['alname']
-    threading.Thread(target=initDl, args=(result,)).start()
+    if q.unfinished_tasks > 0:
+        q.put(result)
+    else:
+        q.put(result)
+        dlThread = threading.Thread(target=initDl, args=(q,)).start()
     return '', 204
 
 
-def initDl(result):
-    dlalbum = torrentdler.TorrentDl(
-        conf.rutracker_user,
-        conf.rutracker_password,
-        transmission_user=conf.transmission_user,
-        transmission_password=conf.transmission_password,
-        qbittorrent_user=conf.qbittorrent_user,
-        qbittorrent_password=conf.qbittorrent_password,
-        transmission_url=conf.transmission_url,
-        qbittorrent_url=conf.qbittorrent_url)
-    try:
-        dlalbum.getCookies()
-        dlalbum.getAlbums(result, client=conf.torrent_client)
-        rq_album = Album(result, "Added")
-    except ValueError:
-        print "• Fix your configuration"
-        rq_album = Album(result, "Fail: Configuration error")
-    except ReferenceError:
-        rq_album = Album(result, "Fail: Unable to find album")
-    except IOError:
-        rq_album = Album(result, "Fail: Unable to add to torrent client")
-    finally:
+def initDl(q):
+    while True:
+        dlalbum = torrentdler.TorrentDl(
+            conf.rutracker_user,
+            conf.rutracker_password,
+            transmission_user=conf.transmission_user,
+            transmission_password=conf.transmission_password,
+            qbittorrent_user=conf.qbittorrent_user,
+            qbittorrent_password=conf.qbittorrent_password,
+            transmission_url=conf.transmission_url,
+            qbittorrent_url=conf.qbittorrent_url,
+            jpopsuki_user=conf.jpopsuki_user,
+            jpopsuki_password=conf.jpopsuki_password)
+        result = q.get()
+        print result
         try:
-            db.session.add(rq_album)
-            db.session.commit()
-        except:
-            pass
+            dlalbum.getCookies()
+            dlalbum.getAlbums(result, client=conf.torrent_client)
+            rq_album = Album(result, "Added")
+        except ValueError:
+            rq_album = Album(result, "Fail: Configuration error")
+        except ReferenceError:
+            rq_album = Album(result, "Fail: Unable to find album")
+        except IOError:
+            rq_album = Album(result, "Fail: Unable to add to torrent client")
+        finally:
+            try:
+                exitingobj = db.session.query(Album.id).filter(Album.album_name==rq_album.album_name).first()
+                if exitingobj:
+                    exitingobj.status = rq_album.status
+                else:
+                    db.session.add(rq_album)
+                    db.session.commit()
+                q.task_done()
+            except:
+                db.session.rollback()
+                pass
 
 
 @app.route('/status')

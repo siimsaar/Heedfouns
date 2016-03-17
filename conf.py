@@ -20,6 +20,8 @@ if not os.path.exists('config.cfg'):
     config.set('general', 'default_search_api', 'lastfm')
     config.set('general', 'rutracker_user', '')
     config.set('general', 'rutracker_password', '')
+    config.set('general', 'jpopsuki_user', '')
+    config.set('general', 'jpopsuki_password', '')
     with open('config.cfg', 'wb') as configfile:
         config.write(configfile)
     print "• Configure in config.cfg and rerun"
@@ -36,4 +38,6 @@ else:
     torrent_client = config.get("general", "torrent_client")
     rutracker_user = config.get("general", "rutracker_user")
     rutracker_password = config.get("general", "rutracker_password")
+    jpopsuki_user = config.get("general", "jpopsuki_user")
+    jpopsuki_password = config.get("general", "jpopsuki_password")
     default_search_api = config.get("general", "default_search_api")

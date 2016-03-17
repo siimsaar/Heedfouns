@@ -2,6 +2,9 @@
 import transmissionrpc
 import ast
 import os
+import time
+from retry import retry
+import requests
 import traceback
 from KickassAPI import *  # fix magnet_link var in KickassAPI.py for it to work
 from selenium import webdriver
@@ -16,15 +19,17 @@ albums = []
 
 
 class TorrentDl():
-    def __init__(self, user_rutracker,
-                 password_rutracker,
+    def __init__(self, user_rutracker=None,
+                 password_rutracker=None,
                  transmission_user=None,
                  transmission_password=None,
                  qbittorrent_user=None,
                  qbittorrent_password=None,
                  fallback=True,
                  qbittorrent_url=None,
-                 transmission_url=None):
+                 transmission_url=None,
+                 jpopsuki_user=None,
+                 jpopsuki_password=None):
         self.user_rutracker = user_rutracker
         self.password_rutracker = password_rutracker
         self.transmission_user = transmission_user
@@ -34,6 +39,8 @@ class TorrentDl():
         self.fallback = fallback
         self.qbittorrent_url = qbittorrent_url
         self.transmission_url = transmission_url
+        self.jpopsuki_user = jpopsuki_user
+        self.jpopsuki_password = jpopsuki_password
 
     def logIn(self):
         driver.get('http://login.rutracker.org/forum/login.php')
@@ -87,7 +94,7 @@ class TorrentDl():
                     if k in torrents[i].text:
                         if seedcount[i] is not "DEAD":
                             print "%d | %s [QUALITY = %s | SEEDS = %s | SIZE = %s]" % (
-                            i + 1, torrents[i].text, k, seedcount[i], size[i].text)
+                                i + 1, torrents[i].text, k, seedcount[i], size[i].text)
         try:
             torrents[0].click()
             dl_link = driver.find_element_by_xpath(r'//*[@id="tor-hash"]')
@@ -111,35 +118,57 @@ class TorrentDl():
         print "• Searching from fallback"
         album = album.replace("-", "")
         try:
+            #raise Exception
             t = Search(album).page(1).order(ORDER.SEED).list()
             print "✓ Found %s" % t[0].__getattribute__("name")
             self.establishRPC(t[0].__getattribute__('magnet_link'), client)
         except:
-            traceback.print_exc()
+            # traceback.print_exc()
             print "✗ No torrents found in Kat"
-            raise ReferenceError
+            try:
+                print "• Searching from Jpopsuki"
+                self.login_forjpop()
+                self.jpopsuki(client, album)
+            except:
+                print "✗ No torrents found in jpopsuki"
+                traceback.print_exc()
+                raise ReferenceError
 
-    def establishRPC(self, magnet_link, client):
+    def establishRPC(self, magnet_link, client, type="magnet"):
         print "• Establishing connection to", client
         if client == "transmission":
             tc = transmissionrpc.Client(self.transmission_url,
                                         port=9091,
                                         user=self.transmission_user,
                                         password=self.transmission_password)
-            print "• Adding magnet to", client
-            tc.add_torrent(magnet_prefix + magnet_link.text)
+            if type == "magnet":
+                print "• Adding magnet to", client
+                tc.add_torrent(magnet_prefix + magnet_link.text)
+            else:
+                print "• Adding torrent to", client
+                tc.add_torrent('file://' + os.path.abspath('torrent.torrent'))
         elif client == "qbittorrent":
             qb = Client(self.qbittorrent_url)
             qb.login(self.qbittorrent_user, self.qbittorrent_password)
             if qb._is_authenticated is True:
-                print "• Adding magnet to", client
-                qb.download_from_link(magnet_prefix + magnet_link.text)
+                if type == "magnet":
+                    print "• Adding magnet to", client
+                    qb.download_from_link(magnet_prefix + magnet_link.text)
+                else:
+                    print "• Adding torrent to", client
+                    qb.download_from_file(file('torrent.torrent'))
 
     def tearDown(self):
         driver.quit()
 
     def getCookies(self):
-        driver.get('http://rutracker.org')
+        try:
+            driver.get('http://rutracker.org')
+        except:
+            try:
+                self.getCookies()
+            except:
+                pass
         if os.path.exists('cookie.dat'):
             f = open('cookie.dat', "r")
             cookie = ast.literal_eval(f.read())
@@ -148,6 +177,48 @@ class TorrentDl():
         else:
             print "✗ No cookie found, generating one"
             self.logIn()
+
+    #@retry(tries=5)
+    def jpopsuki(self, client, album):
+        driver.get('http://jpopsuki.eu/torrents.php')
+        srch_field = driver.find_element_by_xpath('//*[@id="search_box"]/div/div/table[1]/tbody/tr[1]/td[2]/input')
+        srch_field.send_keys(album.replace("-", ""))
+        album_chooser = driver.find_element_by_xpath('//*[@id="cat_1"]')
+        album_chooser.click()
+        search = driver.find_element_by_xpath('//*[@id="search_box"]/div/div/div/input[1]')
+        search.click()
+        while True:
+            if "none" in str(driver.find_element_by_xpath('//*[@id="ajax_torrents"]').get_attribute('style')):
+                continue
+            else:
+                break
+        try:
+            torrent_loc = driver.find_element_by_xpath('//*[@id="torrent_table"]/tbody/tr[3]/td[1]/a')
+            torrent_loc.click()
+            dl_link = driver.find_element_by_xpath(
+            '//*[@id="content"]/div/div[2]/table/tbody/tr[2]/td[1]/span/a[1]').get_attribute('href')
+        except:
+            dl_link = driver.find_element_by_xpath('//*[@id="torrent_table"]/tbody/tr[2]/td[4]/span/a[1]').get_attribute('href')
+        print dl_link
+        f = open('cookie_jpop.dat', "r")
+        cookie = ast.literal_eval(f.read())
+        tfile = requests.get(dl_link, cookies=f)
+        with open('torrent.torrent', 'wb') as output:
+            output.write(tfile.content)
+            self.establishRPC(magnet_link=None, client=client, type="torrent")
+
+    @retry(tries=5)
+    def login_forjpop(self):
+        driver.get("http://jpopsuki.eu/login.php")
+        usr_field = driver.find_element_by_xpath('//*[@id="username"]')
+        pwd_field = driver.find_element_by_xpath('//*[@id="password"]')
+        rmb_field = driver.find_element_by_xpath('//*[@id="loginform"]/table/tbody/tr[3]/td/input')
+        smbit = driver.find_element_by_xpath('//*[@id="loginform"]/table/tbody/tr[4]/td/input')
+        usr_field.send_keys(self.jpopsuki_user)
+        pwd_field.send_keys(self.jpopsuki_password)
+        rmb_field.click()
+        smbit.click()
+        open("cookie_jpop.dat", 'w').write(str(driver.get_cookie("PHPSESSID")))
 
     def check_exists_by_xpath(self, xpath):
         try:

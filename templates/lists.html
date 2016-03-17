@@ -4,29 +4,36 @@
 
 {% block page_content %}
     <div class="page-header">
-    <h1>Latest Pitchfork reviews</h1>
+        <h1>Latest Pitchfork reviews</h1>
     </div>
     <table class="table">
-    <thead>
-    <tr>
-    <th>Title</th>
-    <th>Options</th>
-    </tr>
-    </thead>
-    <tbody>
-    {% for i in p4k_reviews %}
+        <thead>
         <tr>
-    <td>{{ i }}</td>
-           <td><button type="submit" value="{{ i }}" class="btn btn-primary btn-xs" id="dlbttn">Download</button>
-           <button type="submit" value="{{ i }}" class="btn btn-info btn-xs" id="info">Info</button>
-           <button type="submit" value="{{ i }}" class="btn btn-danger btn-xs" id="info">Review</button></td>
+            <th>Cover</th>
+            <th>Title</th>
+            <th>Genre</th>
+            <th class="text-center">Options</th>
         </tr>
-    {% endfor %}
-    </tbody>
+        </thead>
+        <tbody>
+        {% for i in p4k_reviews %}
+            {% set rowloop = loop %}
+            <tr>
+                <td><img src="{{ covers[rowloop.index - 1] }}" alt="Cover" height="84" width="84"></td>
+                <td>{{ i }}</td>
+                <td>{{ genre[rowloop.index - 1] }}</td>
+                <td class="text-center">
+                    <button type="submit" value="{{ i }}" class="btn btn-primary btn-xs" id="dlbttn">Download</button><br />
+                    <button type="submit" value="{{ i }}" class="btn btn-danger btn-xs" id="info">Review</button><br />
+                    <button type="submit" value="{{ i }}" class="btn btn-info btn-xs" id="info">Info</button>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
     </table>
 {% endblock %}
 
 {% block scripts %}
-    {{super()}}
-<script src="{{url_for('.static', filename='albumpost.js')}}"></script>
+    {{ super() }}
+    <script src="{{ url_for('.static', filename='albumpost.js') }}"></script>
 {% endblock %}

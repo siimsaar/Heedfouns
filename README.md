@@ -11,7 +11,6 @@
 * basic config
 
 ## what doesn't work
-* fifo queue to stop crashing
 * info/edit/review buttons
 * changing settings in the web
 * checking if the album has been leaked/released
