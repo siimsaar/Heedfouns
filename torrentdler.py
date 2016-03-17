@@ -67,6 +67,7 @@ class TorrentDl():
             raise ValueError("Unable to log in")
 
     def getAlbums(self, album, client):
+        raise ReferenceError
         print "• Searching for torrents"
         driver.get('http://rutracker.org')
         try:
@@ -118,11 +119,12 @@ class TorrentDl():
         print "• Searching from fallback"
         album = album.replace("-", "")
         try:
-            #raise Exception
+            raise Exception
             t = Search(album).page(1).order(ORDER.SEED).list()
             print "✓ Found %s" % t[0].__getattribute__("name")
             self.establishRPC(t[0].__getattribute__('magnet_link'), client)
         except:
+            raise Exception
             # traceback.print_exc()
             print "✗ No torrents found in Kat"
             try:

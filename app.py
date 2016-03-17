@@ -14,6 +14,7 @@ import threading
 import Queue
 import pylast
 import os
+import traceback
 from lxml import etree
 import discogs_client
 import torrentdler
@@ -76,7 +77,10 @@ def lists():
                 h1 = tree.xpath('//*[@id="reviews"]/div[2]/div/div[1]/div[1]/div/div/div[%d]/a/div[2]/ul/li' % (i))[0].text
                 h2 = tree.xpath('//*[@id="reviews"]/div[2]/div/div[1]/div[1]/div/div/div[%d]/a/div[2]/h2' % (i))[0].text
                 cover = tree.xpath('//*[@id="reviews"]/div[2]/div/div[1]/div[1]/div/div/div[%d]/a/div[1]/div/img//@src' % (i))[0]
-                genres = tree.xpath('//*[@id="reviews"]/div[2]/div/div[1]/div[1]/div/div/div[%d]/div/ul[1]/li/a' % i)[0].text
+                try:
+                    genres = tree.xpath('//*[@id="reviews"]/div[2]/div/div[1]/div[1]/div/div/div[%d]/div/ul[1]/li/a' % i)[0].text
+                except:
+                    genres = "N/A"
                 appendable = '%s - %s' % (h1, h2)
                 p4k_reviews.append(appendable)
                 genre.append(genres)
@@ -172,12 +176,15 @@ def initDl(q):
             try:
                 exitingobj = db.session.query(Album.id).filter(Album.album_name==rq_album.album_name).first()
                 if exitingobj:
-                    exitingobj.status = rq_album.status
+                    print "Updating status"
+                    Album.query.get(exitingobj.id).status = rq_album.status
+                    db.session.commit()
                 else:
                     db.session.add(rq_album)
                     db.session.commit()
                 q.task_done()
             except:
+                traceback.print_exc()
                 db.session.rollback()
                 pass
 
