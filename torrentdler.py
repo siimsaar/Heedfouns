@@ -199,13 +199,13 @@ class TorrentDl():
             '//*[@id="content"]/div/div[2]/table/tbody/tr[2]/td[1]/span/a[1]').get_attribute('href')
         except:
             dl_link = driver.find_element_by_xpath('//*[@id="torrent_table"]/tbody/tr[2]/td[4]/span/a[1]').get_attribute('href')
-        print dl_link
+        #print dl_link
         f = open('cookie_jpop.dat', "r")
         cookie = ast.literal_eval(f.read())
         tfile = requests.get(dl_link, cookies=f)
         with open('torrent.torrent', 'wb') as output:
             output.write(tfile.content)
-            self.establishRPC(magnet_link=None, client=client, type="torrent")
+        self.establishRPC(magnet_link=None, client=client, type="torrent")
 
     @retry(tries=5)
     def login_forjpop(self):
