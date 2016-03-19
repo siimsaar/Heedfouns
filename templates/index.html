@@ -7,7 +7,7 @@
         <h1>Search for albums</h1>
     </div>
     {% if failedsearch == True %}
-        <div class="alert alert-warning"><strong>Shit, </strong>failed to find albums!</div>
+        <div class="alert alert-warning">Failed to find albums!</div>
     {% endif %}
     <form action="{{ url_for('search') }}" method="post">
         <div class="container">
@@ -32,10 +32,6 @@
             </div>
         </div>
     </form>
-    <div class="col-lg-12 text-center" style="margin-top: 20%">
-        <p>Uptime: {{ runtime }}</p>
-        <p style="font-weight: bold">version 0.001</p>
-    </div>
 {% endblock %}
 {% block scripts %}
     {{ super() }}

@@ -7,7 +7,7 @@ from wtforms import StringField, PasswordField, SubmitField, ValidationError
 from wtforms.validators import DataRequired, Length, Regexp, equal_to
 from flask_bootstrap import Bootstrap
 from collections import OrderedDict
-from flask_login import LoginManager, login_user, login_required, UserMixin
+from flask_login import LoginManager, login_user, login_required, UserMixin, current_user
 import urllib2
 import string
 import time
@@ -49,11 +49,10 @@ starttime = datetime.now()
 
 
 @app.route('/', methods=['GET', 'POST'])
+@app.route('/index', methods=['GET', 'POST'])
 @login_required
 def index():
-    runtime = datetime.now() - starttime
-    print runtime
-    return render_template("index.html", runtime=str(runtime)[:7])
+    return render_template("index.html")
 
 
 @app.route('/api', methods=['GET', 'POST'])
@@ -308,6 +307,13 @@ class Registration(Form):
         if User.query.filter_by(name=field.data).first():
             raise ValidationError('Username already exists')
 
+@app.before_request
+def get_current_user():
+    g.user = current_user.name
+
+@app.before_request
+def get_uptime():
+    g.time = str(datetime.now() - starttime)[:7]
 
 if __name__ == '__main__':
     if not os.path.exists('history.db'):

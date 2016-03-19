@@ -44,4 +44,8 @@
         {% endfor %}
     {% block page_content %}{% endblock %}
     </div>
+        <div class="col-lg-12 text-center" style="margin-top: 15%">
+        <p>Logged in as: {{ g.user }}</p>
+        <p>Uptime: {{ g.time }} | version 0.001</p>
+    </div>
 {% endblock %}
