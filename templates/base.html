@@ -22,7 +22,7 @@
                     <li {% if active_page == "lists" %}class="active"{% endif %}><a href="/lists"><span
                             class="glyphicon glyphicon-list"></span> Lists</a></li>
                     <li {% if active_page == "status" %}class="active"{% endif %}><a href="/status"><span
-                            class="glyphicon glyphicon-tasks"></span> Status/History</a>
+                            class="glyphicon glyphicon-tasks"></span> History</a>
                     </li>
                 </ul>
                 <ul class="nav navbar-nav navbar-right" style="float: right">
@@ -45,7 +45,12 @@
     {% block page_content %}{% endblock %}
     </div>
         <div class="col-lg-12 text-center" style="margin-top: 15%">
-        <p>Logged in as: {{ g.user }}</p>
-        <p>Uptime: {{ g.time }} | version 0.001</p>
+        {% if g.user.is_authenticated %}
+        <p>Logged in as: {{ g.user.name }}</p>
+            {% endif %}
+        <p>Uptime: {{ g.time }} | version 0.002</p>
+                {% if g.user.is_authenticated %}
+        <p><a href="/logout">[Log out]</a></p>
+        {% endif %}
     </div>
 {% endblock %}

@@ -7,7 +7,7 @@ from wtforms import StringField, PasswordField, SubmitField, ValidationError
 from wtforms.validators import DataRequired, Length, Regexp, equal_to
 from flask_bootstrap import Bootstrap
 from collections import OrderedDict
-from flask_login import LoginManager, login_user, login_required, UserMixin, current_user
+from flask_login import LoginManager, login_user, login_required, UserMixin, current_user, logout_user
 import urllib2
 import string
 import time
@@ -240,6 +240,11 @@ def login():
         flash("Invalid username or password", 'error')
     return render_template("login.html", form=form)
 
+@app.route('/logout')
+def logout():
+    logout_user()
+    return redirect(url_for('login'))
+
 
 @app.route('/reg', methods=['GET', 'POST'])
 def regacc():
@@ -309,7 +314,7 @@ class Registration(Form):
 
 @app.before_request
 def get_current_user():
-    g.user = current_user.name
+    g.user = current_user
 
 @app.before_request
 def get_uptime():
