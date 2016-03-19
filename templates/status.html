@@ -18,8 +18,9 @@
                 </thead>
                 <tbody>
                 {% for i, j in album_history.iteritems() %}
+                    {% set rowloop = loop %}
                     <tr id="{{ i }}">
-                        <td>{{ i }}</td>
+                        <td><input name="src_album" id="{{ rowloop.index - 1 }}" style="background-color: transparent; color: white" type="text" value="{{ i }}" readonly="readonly"></td>
                         <td>
                             {% if "Fail" in j %}
                                 <span class="label label-danger"> Error</span>
@@ -28,7 +29,7 @@
                             {% endif %}{{ j.replace("Fail:", "") }}</td>
                         <td>
                             <button type="button" value="{{ i }}" class="btn btn-danger btn-xs">Remove</button>
-                            <button type="button" value="{{ i }}" class="btn btn-info btn-xs">Edit</button>
+                            <button type="button" value="{{ rowloop.index - 1 }}" class="btn btn-info btn-xs">Edit</button>
                             {% if "Fail" in j %}
                                 <button type="button" value="{{ i }}" class="btn btn-primary btn-xs">Retry</button>
                             {% endif %}

@@ -10,6 +10,7 @@ from collections import OrderedDict
 from flask_login import LoginManager, login_user, login_required, UserMixin
 import urllib2
 import string
+import time
 import threading
 import Queue
 import pylast
@@ -151,6 +152,7 @@ def lastfm_search(message, srchquery, covers):
 @login_required
 def download():
     result = request.form['alname']
+    time.sleep(1)
     if q.unfinished_tasks > 0:
         q.put(result)
     else:
@@ -219,6 +221,14 @@ def delete():
     db.session.commit()
     return '', 204
 
+@app.route('/rename', methods=['POST'])
+@login_required
+def rename():
+    edits = request.json
+    changetxt = Album.query.filter_by(album_name=edits['oldn']).first()
+    Album.query.get(changetxt.id).album_name = edits['newn']
+    db.session.commit()
+    return '', 204
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():

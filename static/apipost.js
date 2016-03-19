@@ -1,6 +1,6 @@
 function getApiBttns() {
     var bttns = document.getElementsByName("apibttn");
-    for (i = 0; i < bns.length; i++) {
+    for (i = 0; i < bttns.length; i++) {
         bttns[i].addEventListener("click", function () {
             var val = $(this).val();
             $.ajax({
