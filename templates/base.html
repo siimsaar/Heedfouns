@@ -1,6 +1,6 @@
 {% extends "bootstrap/base.html" %}
 
-{% block title %}namelessbot{% endblock %}
+{% block title %}py-proj{% endblock %}
 
 {% block navbar %}
     <div class="navbar navbar-default" role="navigation">
@@ -17,14 +17,17 @@
             </div>
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
-                    <li {% if active_page == "index" %}class="active"{% endif %}><a href="/">Search</a></li>
-                    <li {% if active_page == "lists" %}class="active"{% endif %}><a href="/lists">Lists</a></li>
-                    <li {% if active_page == "status" %}class="active"{% endif %}><a href="/status">Status/History</a>
+                    <li {% if active_page == "index" %}class="active"{% endif %}><a href="/"><span
+                            class="glyphicon glyphicon-search"></span> Search</a></li>
+                    <li {% if active_page == "lists" %}class="active"{% endif %}><a href="/lists"><span
+                            class="glyphicon glyphicon-list"></span> Lists</a></li>
+                    <li {% if active_page == "status" %}class="active"{% endif %}><a href="/status"><span
+                            class="glyphicon glyphicon-tasks"></span> Status/History</a>
                     </li>
                 </ul>
-                <ul class="nav navbar-nav" style="float: right">
-                    <li {% if active_page == "settings" %}class="active"{% endif %}><a href="/settings"
-                                                                                       class="navbar-nav pull-right">Settings</a>
+                <ul class="nav navbar-nav navbar-right" style="float: right">
+                    <li {% if active_page == "settings" %}class="active"{% endif %}><a href="/settings"><span
+                            class="glyphicon glyphicon-cog"></span> Settings</a>
                     </li>
                 </ul>
             </div>
@@ -39,6 +42,6 @@
                 {{ message }}
             </div>
         {% endfor %}
-        {% block page_content %}{% endblock %}
+    {% block page_content %}{% endblock %}
     </div>
 {% endblock %}

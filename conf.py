@@ -38,6 +38,6 @@ else:
     torrent_client = config.get("general", "torrent_client")
     rutracker_user = config.get("general", "rutracker_user")
     rutracker_password = config.get("general", "rutracker_password")
+    default_search_api = config.get("general", "default_search_api")
     jpopsuki_user = config.get("general", "jpopsuki_user")
     jpopsuki_password = config.get("general", "jpopsuki_password")
-    default_search_api = config.get("general", "default_search_api")

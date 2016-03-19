@@ -1,7 +1,7 @@
-function addtoev() {
-    var bns = document.getElementsByName("apibttn");
+function getApiBttns() {
+    var bttns = document.getElementsByName("apibttn");
     for (i = 0; i < bns.length; i++) {
-        bns[i].addEventListener("click", function () {
+        bttns[i].addEventListener("click", function () {
             var val = $(this).val();
             $.ajax({
                 url: './api',
@@ -14,7 +14,7 @@ function addtoev() {
 }
 
 window.addEventListener("load",function() {
-  addtoev();
+  getApiBttns();
                 $.ajax({
                 url: './api',
                 type: "POST",
@@ -48,3 +48,4 @@ function initial(id) {
     document.getElementById(id).setAttribute('class', 'btn btn-primary active')
 
 }
+

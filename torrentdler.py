@@ -2,11 +2,12 @@
 import transmissionrpc
 import ast
 import os
+import sys
 import time
 from retry import retry
 import requests
 import traceback
-from KickassAPI import *  # fix magnet_link var in KickassAPI.py for it to work
+import pytorrentz
 from selenium import webdriver
 from qbittorrent import Client
 from selenium.common.exceptions import NoSuchElementException
@@ -16,7 +17,7 @@ magnet_prefix = "magnet:?xt=urn:btih:"
 types = {"FLAC", "ALAC", "AAC", "MP3"}
 
 albums = []
-
+jlogged = False
 
 class TorrentDl():
     def __init__(self, user_rutracker=None,
@@ -67,7 +68,6 @@ class TorrentDl():
             raise ValueError("Unable to log in")
 
     def getAlbums(self, album, client):
-        raise ReferenceError
         print "• Searching for torrents"
         driver.get('http://rutracker.org')
         try:
@@ -102,6 +102,7 @@ class TorrentDl():
             try:
                 self.establishRPC(dl_link, client)
             except:
+                #traceback.print_exc()
                 print "✗ Unable to establish connection"
                 raise IOError
         except:
@@ -116,24 +117,23 @@ class TorrentDl():
                     raise IOError
 
     def fallback_tracker(self, client, album):
-        print "• Searching from fallback"
+        print "• Searching from Torrentz.eu"
         album = album.replace("-", "")
         try:
-            raise Exception
-            t = Search(album).page(1).order(ORDER.SEED).list()
-            print "✓ Found %s" % t[0].__getattribute__("name")
-            self.establishRPC(t[0].__getattribute__('magnet_link'), client)
+            search = pytorrentz.search(album, limit=5, quality='good', order='peers')
+            self.establishRPC(search[0].get_magnet_uri(), client)
         except:
-            raise Exception
-            # traceback.print_exc()
-            print "✗ No torrents found in Kat"
+            #traceback.print_exc()
+            print "✗ No torrents found in Torrentz.eu"
             try:
                 print "• Searching from Jpopsuki"
-                self.login_forjpop()
+                global jlogged
+                if jlogged is False:
+                    self.login_forjpop()
                 self.jpopsuki(client, album)
             except:
                 print "✗ No torrents found in jpopsuki"
-                traceback.print_exc()
+                #traceback.print_exc()
                 raise ReferenceError
 
     def establishRPC(self, magnet_link, client, type="magnet"):
@@ -221,6 +221,8 @@ class TorrentDl():
         rmb_field.click()
         smbit.click()
         open("cookie_jpop.dat", 'w').write(str(driver.get_cookie("PHPSESSID")))
+        global jlogged
+        jlogged = True
 
     def check_exists_by_xpath(self, xpath):
         try:

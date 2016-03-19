@@ -1,7 +1,7 @@
-function addtoev() {
-    var bns = document.getElementsByClassName("btn btn-primary btn-xs");
-    for (i = 0; i < bns.length; i++) {
-        bns[i].addEventListener("click", function () {
+function getDlBttns() {
+    var bttns = document.getElementsByClassName("btn btn-primary btn-xs");
+    for (i = 0; i < bttns.length; i++) {
+        bttns[i].addEventListener("click", function () {
             var val = $(this).val();
             $.ajax({
                 url: './dl',
@@ -14,5 +14,5 @@ function addtoev() {
 }
 
 window.addEventListener("load",function() {
-  addtoev();
+  getDlBttns();
 });

@@ -1,14 +1,11 @@
 {% extends "base.html" %}
 {% import "bootstrap/wtf.html" as wtf %}
 
-{% set active_page = "login" %}
+{% set active_page = "reg" %}
 
 {% block page_content %}
 <div class="page-header">
-    <h1>Login</h1>
+    <h1>Registration</h1>
 </div>
     {{ wtf.quick_form(form) }}
-    <br/>
-    <p>No account? Consider registering <a href="/reg">here</a></p>
-    </div>
 {% endblock %}

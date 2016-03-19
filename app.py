@@ -3,8 +3,8 @@ from flask import *
 from flask_sqlalchemy import SQLAlchemy
 from flask_cache import Cache
 from flask_wtf import Form
-from wtforms import StringField, PasswordField, SubmitField
-from wtforms.validators import DataRequired, Length
+from wtforms import StringField, PasswordField, SubmitField, ValidationError
+from wtforms.validators import DataRequired, Length, Regexp, equal_to
 from flask_bootstrap import Bootstrap
 from collections import OrderedDict
 from flask_login import LoginManager, login_user, login_required, UserMixin
@@ -13,6 +13,7 @@ import string
 import threading
 import Queue
 import pylast
+from datetime import datetime
 import os
 import traceback
 from lxml import etree
@@ -29,6 +30,8 @@ app.secret_key = 'whateva'
 
 ##BOOTSTRAP
 Bootstrap(app)
+app.config['BOOTSTRAP_SERVE_LOCAL'] = True
+app.config['BOOTSTRAP_USE_MINIFIED'] = False
 
 ##FLASK-LOGIN
 login_manager = LoginManager()
@@ -41,11 +44,15 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'hi
 
 discg = discogs_client.Client
 q = Queue.Queue()
+starttime = datetime.now()
+
 
 @app.route('/', methods=['GET', 'POST'])
 @login_required
 def index():
-    return render_template("index.html")
+    runtime = datetime.now() - starttime
+    print runtime
+    return render_template("index.html", runtime=str(runtime)[:7])
 
 
 @app.route('/api', methods=['GET', 'POST'])
@@ -63,31 +70,36 @@ def apisel():
 
 @app.route('/lists')
 @login_required
-#@cache.cached(timeout=3600)
+# @cache.cached(timeout=3600)
 def lists():
-    ureq = urllib2.Request(r'http://pitchfork.com/reviews/albums', headers={'User-Agent' : "asdf"})
+    ureq = urllib2.Request(r'http://pitchfork.com/reviews/albums', headers={'User-Agent': "asdf"})
     site = urllib2.urlopen(ureq)
     parser = etree.HTMLParser()
     tree = etree.parse(site, parser)
     p4k_reviews = []
+    rv_links = []
     covers = []
     genre = []
     for i in xrange(1, 25):
+        try:
+            h1 = tree.xpath('//*[@id="reviews"]/div[2]/div/div[1]/div[1]/div/div/div[%d]/a/div[2]/ul/li' % (i))[0].text
+            h2 = tree.xpath('//*[@id="reviews"]/div[2]/div/div[1]/div[1]/div/div/div[%d]/a/div[2]/h2' % (i))[0].text
+            cover = \
+            tree.xpath('//*[@id="reviews"]/div[2]/div/div[1]/div[1]/div/div/div[%d]/a/div[1]/div/img//@src' % (i))[0]
+            reviewlink = tree.xpath('//*[@id="reviews"]/div[2]/div/div[1]/div/div/div/div[%d]/a//@href' % (i))[0]
             try:
-                h1 = tree.xpath('//*[@id="reviews"]/div[2]/div/div[1]/div[1]/div/div/div[%d]/a/div[2]/ul/li' % (i))[0].text
-                h2 = tree.xpath('//*[@id="reviews"]/div[2]/div/div[1]/div[1]/div/div/div[%d]/a/div[2]/h2' % (i))[0].text
-                cover = tree.xpath('//*[@id="reviews"]/div[2]/div/div[1]/div[1]/div/div/div[%d]/a/div[1]/div/img//@src' % (i))[0]
-                try:
-                    genres = tree.xpath('//*[@id="reviews"]/div[2]/div/div[1]/div[1]/div/div/div[%d]/div/ul[1]/li/a' % i)[0].text
-                except:
-                    genres = "N/A"
-                appendable = '%s - %s' % (h1, h2)
-                p4k_reviews.append(appendable)
-                genre.append(genres)
-                covers.append(str(cover))
-            except (TypeError):
-                pass
-    return render_template("lists.html", p4k_reviews=p4k_reviews, covers=covers, genre=genre)
+                genres = tree.xpath('//*[@id="reviews"]/div[2]/div/div[1]/div[1]/div/div/div[%d]/div/ul[1]/li/a' % i)[
+                    0].text
+            except:
+                genres = "N/A"
+            appendable = '%s - %s' % (h1, h2)
+            p4k_reviews.append(appendable)
+            genre.append(genres)
+            rv_links.append("http://pitchfork.com" + reviewlink)
+            covers.append(str(cover))
+        except (TypeError):
+            pass
+    return render_template("lists.html", p4k_reviews=p4k_reviews, covers=covers, genre=genre, rv_links=rv_links)
 
 
 @app.route('/settings')
@@ -174,7 +186,7 @@ def initDl(q):
             rq_album = Album(result, "Fail: Unable to add to torrent client")
         finally:
             try:
-                exitingobj = db.session.query(Album.id).filter(Album.album_name==rq_album.album_name).first()
+                exitingobj = db.session.query(Album.id).filter(Album.album_name == rq_album.album_name).first()
                 if exitingobj:
                     print "Updating status"
                     Album.query.get(exitingobj.id).status = rq_album.status
@@ -210,7 +222,6 @@ def delete():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    print url_for('index')
     form = Login()
     if form.validate_on_submit():
         user = User.query.filter_by(name=form.name.data).first()
@@ -219,6 +230,18 @@ def login():
             return redirect(url_for("index"))
         flash("Invalid username or password", 'error')
     return render_template("login.html", form=form)
+
+
+@app.route('/reg', methods=['GET', 'POST'])
+def regacc():
+    form = Registration()
+    if form.validate_on_submit():
+        user = User(name=form.name.data, password=form.password.data)
+        db.session.add(user)
+        db.session.commit()
+        flash("Registered")
+        return redirect(url_for("login"))
+    return render_template("reg.html", form=form)
 
 
 @login_manager.user_loader
@@ -263,5 +286,20 @@ class Login(Form):
     submit = SubmitField('Log In')
 
 
+class Registration(Form):
+    name = StringField('Username', validators=[DataRequired(), Length(1, 24),
+                                               Regexp('^[A-Za-z][A-Za-z0-9_.]*$', 0, "Invalid chars")])
+    password = PasswordField('Password', validators=[DataRequired(), equal_to('password2', "Passwords dont match!"),
+                                                     Length(4, 24, "Password too short")])
+    password2 = PasswordField('Confirm pw', validators=[DataRequired()])
+    submit = SubmitField('Register')
+
+    def validate_name(self, field):
+        if User.query.filter_by(name=field.data).first():
+            raise ValidationError('Username already exists')
+
+
 if __name__ == '__main__':
+    if not os.path.exists('history.db'):
+        db.create_all()
     app.run(debug=True)
