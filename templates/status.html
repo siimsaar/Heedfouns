@@ -8,10 +8,10 @@
     </div>
     <div class="container">
         <div class="col-lg-12">
-            <table class="table">
+            <table class="table table-hover">
                 <thead>
                 <tr>
-                    <th width="40%">Title</th>
+                    <th width="45%">Title</th>
                     <th width="30%">Status</th>
                     <th width="30%">Function</th>
                 </tr>
@@ -20,7 +20,8 @@
                 {% for i, j in album_history.iteritems() %}
                     {% set rowloop = loop %}
                     <tr id="{{ i }}">
-                        <td><input name="src_album" id="{{ rowloop.index - 1 }}" style="background-color: transparent; color: white" type="text" value="{{ i }}" readonly="readonly"></td>
+                        <td>
+                            <input name="src_album" id="{{ rowloop.index - 1 }}" style="background-color: transparent; color: white;" type="text" value="{{ i }}" readonly="readonly"></td>
                         <td>
                             {% if "Fail" in j %}
                                 <span class="label label-danger"> Error</span>

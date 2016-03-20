@@ -6,15 +6,16 @@
     <h1>Search results</h1>
     <div class="container">
         <div class="col-lg-12">
-            <table class="table">
+            <table class="table table-hover">
                 <thead>
                 <tr>
-                    <th style="width: 75%">Title</th>
-                    <th style="width: 25%">Options</th>
+                    <th style="width: 70%">Title</th>
+                    <th style="width: 30%">Options</th>
                 </tr>
                 </thead>
                 <tbody>
                 {% for i in srchquery %}
+                    {% set row = loop %}
                     <tr>
                         <td>{{ i }}</td>
                         <td>
@@ -23,6 +24,28 @@
                             <button type="submit" value="{{ i }}" class="btn btn-info btn-xs" id="info">More info
                             </button>
                         </td>
+                    </tr>
+                    <tr id="{{ row.index - 1}}" style="display: none">
+                    <td style="font-size: 12px"><img src="http://img2-ak.lst.fm/i/u/174s/988a29e25d7e4b70cba17e7c8e3df827.jpg"
+                                                     style="vertical-align: top" height="100px" width="100px"><span style="padding-left: 5px; display: inline-block">
+                        Release date: placeholder
+                       <br/>Genre: placeholder <br/>
+                        Similar: placeholder <br/>
+                        URL: placeholder
+                    </span></td>
+                    <td>
+                    <table style="font-size: small">
+                        <thead>
+                        <tr>
+                            <th>Track list</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr><td>placeholder - placeholder</td></tr>
+                        <tr><td>placeholder - placeholder</td></tr>
+                        <tr><td>placeholder - placeholder</td></tr>
+                        </tbody>
+                    </table></td>
                     </tr>
                 {% endfor %}
                 </tbody>
