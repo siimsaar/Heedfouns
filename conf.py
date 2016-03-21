@@ -41,3 +41,4 @@ else:
     default_search_api = config.get("general", "default_search_api")
     jpopsuki_user = config.get("general", "jpopsuki_user")
     jpopsuki_password = config.get("general", "jpopsuki_password")
+

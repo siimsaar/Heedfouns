@@ -9,8 +9,8 @@
             <table class="table table-hover">
                 <thead>
                 <tr>
-                    <th style="width: 70%">Title</th>
-                    <th style="width: 30%">Options</th>
+                    <th width="70%">Title</th>
+                    <th width="30%">Options</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -25,16 +25,23 @@
                             </button>
                         </td>
                     </tr>
-                    <tr id="{{ row.index - 1}}" style="display: none">
+                    <tr id="{{ row.index - 1}}">
                     <td style="font-size: 12px"><img src="http://img2-ak.lst.fm/i/u/174s/988a29e25d7e4b70cba17e7c8e3df827.jpg"
-                                                     style="vertical-align: top" height="100px" width="100px"><span style="padding-left: 5px; display: inline-block">
-                        Release date: placeholder
-                       <br/>Genre: placeholder <br/>
-                        Similar: placeholder <br/>
-                        URL: placeholder
-                    </span></td>
-                    <td>
-                    <table style="font-size: small">
+                                                     style="vertical-align: top" height="100px" width="100px"><table style="display: inline-table; margin-left: 5px">
+                        <thead>
+                        <tr>
+                            <th>Info</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr><td>Releae date: XXX</td></tr>
+                        <tr><td>Genre: XXX</td></tr>
+                        <tr><td>Similar artists: XXX</td></tr>
+                        </tbody>
+                        </table>
+                    </td>
+                    <td style="font-size: 12px">
+                    <table>
                         <thead>
                         <tr>
                             <th>Track list</th>

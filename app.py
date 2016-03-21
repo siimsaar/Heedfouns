@@ -105,13 +105,31 @@ def lists():
 @app.route('/settings')
 @login_required
 def settings():
-    return render_template("settings.html")
+    return render_template("settings.html", torrent_client=conf.torrent_client,
+                           fallback=conf.use_fallback,
+                           default_api=conf.default_search_api,
+                           transmission_u=conf.transmission_user,
+                           transmission_p=conf.transmission_password,
+                           qbitorrent_u=conf.qbittorrent_user,
+                           qbitorrent_p=conf.qbittorrent_password,
+                           tranmission_url=conf.transmission_url,
+                           qbitorrent_url=conf.qbittorrent_url,
+                           rutracker_u=conf.rutracker_user,
+                           rutracker_p=conf.rutracker_password,
+                           jpop_u=conf.jpopsuki_user,
+                           jpop_p=conf.jpopsuki_password)
 
 
 @app.route('/search', methods=['GET', 'POST'])
 @login_required
 def search():
     message = request.form['action']
+    return redirect(url_for('search_results', message=message))
+
+
+@app.route('/results/<message>')
+@login_required
+def search_results(message):
     srchquery = []
     covers = []
     search_provider = None
@@ -127,7 +145,7 @@ def search():
     except (IndexError, pylast.WSError):
         failedsearch = True
         return render_template("index.html", failedsearch=failedsearch)
-    return render_template('search.html', srchquery=srchquery)
+    return render_template("search.html", srchquery=srchquery)
 
 
 def discogs_search(message, srchquery):
@@ -304,7 +322,7 @@ class Registration(Form):
     name = StringField('Username', validators=[DataRequired(), Length(1, 24),
                                                Regexp('^[A-Za-z][A-Za-z0-9_.]*$', 0, "Invalid chars")])
     password = PasswordField('Password', validators=[DataRequired(), equal_to('password2', "Passwords dont match!"),
-                                                     Length(4, 24, "Password too short")])
+                                                     Length(4, 24, "Password too short ( 4 chars min ) ")])
     password2 = PasswordField('Confirm pw', validators=[DataRequired()])
     submit = SubmitField('Register')
 

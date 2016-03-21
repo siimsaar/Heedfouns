@@ -21,7 +21,8 @@
                     {% set rowloop = loop %}
                     <tr id="{{ i }}">
                         <td>
-                            <input name="src_album" id="{{ rowloop.index - 1 }}" style="background-color: transparent; color: white;" type="text" value="{{ i }}" readonly="readonly"></td>
+                            <input class="form-control-custom input-sm" name="src_album" id="{{ rowloop.index - 1 }}" type="text" value="{{ i }}" readonly="readonly">
+                        </td>
                         <td>
                             {% if "Fail" in j %}
                                 <span class="label label-danger"> Error</span>

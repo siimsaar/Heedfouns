@@ -3,8 +3,44 @@
 {% set active_page = "settings" %}
 
 {% block page_content %}
-<div class="page-header">
-    <h1>Settings</h1>
-</div>
-    <p>it doesnt work yet!</p>
+    <div class="page-header">
+        <h1>Settings</h1>
+    </div>
+    <form action="/settings/save" method="post">
+    <div class="container">
+        <div class="col-lg-6">
+            <h3>General</h3>
+                <p>ruTracker user: <input class="form-control" name="ru_u" type="text" value="{{ rutracker_u }}"></p>
+                <p>ruTracker pw: <input class="form-control" name="ru_p" type="password" value="{{ rutracker_p }}"></p>
+                <p>jpopsuki user: <input class="form-control" name="j_u" type="text" value="{{ jpop_u }}"></p>
+                <p>jpopsuki pw: <input class="form-control" name="ju_p" type="password" value="{{ jpop_p }}"></p>
+                <p>
+                <div class="radio">
+                    <h3>Torrent client:</h3>
+                    <div class="form-group">
+                        Select: <select class="form-control" id="tclient">
+                        {% if torrent_client == "qbittorrent" %}
+                            <option>qbitorrent</option>
+                            <option>transmission</option>
+                        {% else %}
+                            <option>transmission</option>
+                            <option>qbittorrent</option>
+                        {% endif %}
+                    </select>
+                    </div>
+                </div>
+        </div>
+        <div class="col-lg-6">
+            <h3>Client settings</h3>
+            <p>Transmission url: <input class="form-control" name="t_url" type="text" value="{{ tranmission_url }}"></p>
+            <p>Transmission user:<input class="form-control" name="tu_us" type="text" value="{{ transmission_u }}"></p>
+            <p>Transmission pw: <input class="form-control" name="tu_pw" type="password" value="{{ transmission_p }}">
+            </p>
+            <p>Qbitorrent url: <input class="form-control" name="q_url" type="text" value="{{ qbitorrent_url }}"></p>
+            <p>Qbitorrent user: <input class="form-control" name="q_us" type="text" value="{{ qbitorrent_u }}"></p>
+            <p>Qbitorrent pw: <input class="form-control" name="q_pw" type="password" value="{{ qbitorrent_p }}"></p>
+        </div>
+    </div>
+    <div style="padding-top: 5%" class="col-lg-12 text-center"><input class="btn btn-default" id="submit" name="submit" type="submit" value="Save"></div>
+    </form>
 {% endblock %}
