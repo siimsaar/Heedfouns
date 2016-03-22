@@ -11,6 +11,7 @@ from flask_login import LoginManager, login_user, login_required, UserMixin, cur
 import urllib2
 import string
 import time
+import re
 import threading
 import Queue
 import pylast
@@ -85,7 +86,8 @@ def lists():
             h1 = tree.xpath('//*[@id="reviews"]/div[2]/div/div[1]/div[1]/div/div/div[%d]/a/div[2]/ul/li' % (i))[0].text
             h2 = tree.xpath('//*[@id="reviews"]/div[2]/div/div[1]/div[1]/div/div/div[%d]/a/div[2]/h2' % (i))[0].text
             cover = \
-            tree.xpath('//*[@id="reviews"]/div[2]/div/div[1]/div[1]/div/div/div[%d]/a/div[1]/div/img//@src' % (i))[0]
+                tree.xpath('//*[@id="reviews"]/div[2]/div/div[1]/div[1]/div/div/div[%d]/a/div[1]/div/img//@src' % (i))[
+                    0]
             reviewlink = tree.xpath('//*[@id="reviews"]/div[2]/div/div[1]/div/div/div/div[%d]/a//@href' % (i))[0]
             try:
                 genres = tree.xpath('//*[@id="reviews"]/div[2]/div/div[1]/div[1]/div/div/div[%d]/div/ul[1]/li/a' % i)[
@@ -158,8 +160,7 @@ def discogs_search(message, srchquery):
 
 def lastfm_search(message, srchquery, covers):
     API_KEY = "d5e9e669b3a12715c860607e3ddce016"
-    API_SECRET = "44c1a2333db8fe1b083716a614fa569a"
-    lfm = pylast.LastFMNetwork(api_key=API_KEY, api_secret=API_SECRET)
+    lfm = pylast.LastFMNetwork(api_key=API_KEY)
     artist = lfm.get_artist(message).get_top_albums(limit=25)
     for i in artist:
         srchquery.append(str(i[0]).decode('utf-8'))
@@ -238,6 +239,7 @@ def delete():
     db.session.commit()
     return '', 204
 
+
 @app.route('/rename', methods=['POST'])
 @login_required
 def rename():
@@ -246,6 +248,36 @@ def rename():
     Album.query.get(changetxt.id).album_name = edits['newn']
     db.session.commit()
     return '', 204
+
+
+@app.route('/more_info/<artist>/<album>', methods=['GET', 'POST'])
+@login_required
+def m_info(artist, album):
+    API_KEY = "d5e9e669b3a12715c860607e3ddce016"
+    lfm = pylast.LastFMNetwork(api_key=API_KEY)
+    g_artist = lfm.get_artist(artist)
+    g_album = lfm.get_album(artist, album)
+    tags = g_album.get_top_tags(limit=6)
+    cover = str(g_album.get_cover_image())
+    similar = g_artist.get_similar(limit=6)
+    tracks = g_album.get_tracks()
+    tag_l = []
+    trak_l = []
+    similar_l = []
+    release = "N/A"
+    for i in xrange(0, 5):
+        try:
+            if not str(tags[i][0]).isdigit():
+                tag_l.append(str(tags[i][0]))
+            else:
+                release = str(tags[i][0])
+            similar_l.append(str(similar[i][0]))
+        except:
+            continue
+    for j in tracks:
+        trak_l.append(str(j))
+    return jsonify(tags=tag_l, similar_artists=similar_l, track_list=trak_l, cover=cover, release=release)
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -257,6 +289,7 @@ def login():
             return redirect(url_for("index"))
         flash("Invalid username or password", 'error')
     return render_template("login.html", form=form)
+
 
 @app.route('/logout')
 def logout():
@@ -330,13 +363,16 @@ class Registration(Form):
         if User.query.filter_by(name=field.data).first():
             raise ValidationError('Username already exists')
 
+
 @app.before_request
 def get_current_user():
     g.user = current_user
 
+
 @app.before_request
 def get_uptime():
     g.time = str(datetime.now() - starttime)[:7]
+
 
 if __name__ == '__main__':
     if not os.path.exists('history.db'):

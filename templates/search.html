@@ -21,22 +21,22 @@
                         <td>
                             <button type="submit" value="{{ i }}" class="btn btn-primary btn-xs" id="dlbttn">Download
                             </button>
-                            <button type="submit" value="{{ i }}" class="btn btn-info btn-xs" id="info">More info
+                            <button type="submit" value="{{ i }}" class="btn btn-info btn-xs" id="{{ row.index - 1 }} button">More info
                             </button>
                         </td>
                     </tr>
-                    <tr id="{{ row.index - 1}}">
-                    <td style="font-size: 12px"><img src="http://img2-ak.lst.fm/i/u/174s/988a29e25d7e4b70cba17e7c8e3df827.jpg"
-                                                     style="vertical-align: top" height="100px" width="100px"><table style="display: inline-table; margin-left: 5px">
+                    <tr id="{{ row.index - 1}}" style="display: none">
+                    <td style="font-size: 12px"><img id="{{ row.index - 1 }} cover" src="/static/100.jpg"
+                                                     style="vertical-align: top" height="120px" width="120px"><table style="display: inline-table; margin-left: 5px">
                         <thead>
                         <tr>
                             <th>Info</th>
                         </tr>
                         </thead>
                         <tbody>
-                        <tr><td>Releae date: XXX</td></tr>
-                        <tr><td>Genre: XXX</td></tr>
-                        <tr><td>Similar artists: XXX</td></tr>
+                        <tr><td id="{{ row.index - 1 }} release">Release date: </td></tr>
+                        <tr><td id="{{ row.index - 1 }} tags">Tags: </td></tr>
+                        <tr><td id="{{ row.index - 1 }} similar">Similar artists: </td></tr>
                         </tbody>
                         </table>
                     </td>
@@ -47,11 +47,7 @@
                             <th>Track list</th>
                         </tr>
                         </thead>
-                        <tbody>
-                        <tr><td>placeholder - placeholder</td></tr>
-                        <tr><td>placeholder - placeholder</td></tr>
-                        <tr><td>placeholder - placeholder</td></tr>
-                        </tbody>
+                        <tbody id="{{ row.index - 1 }} tracks" class="tracklist" style="height: 90px !important; overflow: scroll; display: block">
                     </table></td>
                     </tr>
                 {% endfor %}
