@@ -11,10 +11,10 @@
             <table class="table table-hover">
                 <thead>
                 <tr>
-                    <th>Cover</th>
-                    <th>Title</th>
-                    <th>Genre</th>
-                    <th class="text-center">Options</th>
+                    <th class="col-lg-1">Cover</th>
+                    <th class="col-lg-5">Title</th>
+                    <th class="col-lg-2">Genre</th>
+                    <th class="col-lg-4 text-center">Options</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -25,13 +25,13 @@
                         <td>{{ i }}</td>
                         <td>{{ genre[rowloop.index - 1] }}</td>
                         <td class="text-center">
-                            <button value="{{ i }}" class="btn btn-primary btn-xs" id="dlbttn">Download</button>
-                            <a
-                                    href="{{ rv_links[rowloop.index - 1] }}" target="_blank"
-                                    style="text-decoration: none; color: inherit">
-                                <button value="{{ i }}" class="btn btn-danger btn-xs" id="review">Review</button>
+                            <button value="{{ i }}" class="btn btn-primary btn-xs">Download</button>
+                            <a class="btn btn-danger btn-xs"
+                               href="{{ rv_links[rowloop.index - 1] }}" target="_blank"
+                               style="text-decoration: none; color: inherit">
+                                Review
                             </a>
-                            <button value="{{ i }}" class="btn btn-info btn-xs" id="info">Info</button>
+                            <button value="{{ i }}" class="btn btn-info btn-xs">Info</button>
                         </td>
                     </tr>
                 {% endfor %}

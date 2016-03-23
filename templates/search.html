@@ -9,8 +9,8 @@
             <table class="table table-hover">
                 <thead>
                 <tr>
-                    <th width="70%">Title</th>
-                    <th width="30%">Options</th>
+                    <th class="col-lg-8">Title</th>
+                    <th class="col-lg-4">Options</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -19,24 +19,24 @@
                     <tr>
                         <td>{{ i }}</td>
                         <td>
-                            <button type="submit" value="{{ i }}" class="btn btn-primary btn-xs" id="dlbttn">Download
+                            <button type="submit" value="{{ i }}" class="btn btn-primary btn-xs" id="{{ row.index - 1 }}dlbttn">Download
                             </button>
-                            <button type="submit" value="{{ i }}" class="btn btn-info btn-xs" id="{{ row.index - 1 }} button">More info
+                            <button type="submit" value="{{ i }}" class="btn btn-info btn-xs" id="{{ row.index - 1 }}-button">More info
                             </button>
                         </td>
                     </tr>
                     <tr id="{{ row.index - 1}}" style="display: none">
-                    <td style="font-size: 12px"><img id="{{ row.index - 1 }} cover" src="/static/100.jpg"
-                                                     style="vertical-align: top" height="120px" width="120px"><table style="display: inline-table; margin-left: 5px">
+                    <td style="font-size: 12px"><img alt="album_pic" id="{{ row.index - 1 }}-cover" src="/static/100.jpg"
+                                                     style="vertical-align: top; width: 120px; height: 120px"><table style="display: inline-table; margin-left: 5px">
                         <thead>
                         <tr>
                             <th>Info</th>
                         </tr>
                         </thead>
                         <tbody>
-                        <tr><td id="{{ row.index - 1 }} release">Release date: </td></tr>
-                        <tr><td id="{{ row.index - 1 }} tags">Tags: </td></tr>
-                        <tr><td id="{{ row.index - 1 }} similar">Similar artists: </td></tr>
+                        <tr><td id="{{ row.index - 1 }}-release">Release date: </td></tr>
+                        <tr><td id="{{ row.index - 1 }}-tags">Tags: </td></tr>
+                        <tr><td id="{{ row.index - 1 }}-similar">Similar artists: </td></tr>
                         </tbody>
                         </table>
                     </td>
@@ -47,7 +47,7 @@
                             <th>Track list</th>
                         </tr>
                         </thead>
-                        <tbody id="{{ row.index - 1 }} tracks" class="tracklist" style="height: 90px !important; overflow: scroll; display: block">
+                        <tbody id="{{ row.index - 1 }}-tracks" class="tracklist" style="height: 90px !important; overflow: scroll; display: block">
                     </table></td>
                     </tr>
                 {% endfor %}

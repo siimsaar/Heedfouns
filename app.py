@@ -11,7 +11,6 @@ from flask_login import LoginManager, login_user, login_required, UserMixin, cur
 import urllib2
 import string
 import time
-import re
 import threading
 import Queue
 import pylast
@@ -71,7 +70,7 @@ def apisel():
 
 @app.route('/lists')
 @login_required
-# @cache.cached(timeout=3600)
+#@cache.cached(timeout=3600)
 def lists():
     ureq = urllib2.Request(r'http://pitchfork.com/reviews/albums', headers={'User-Agent': "asdf"})
     site = urllib2.urlopen(ureq)
