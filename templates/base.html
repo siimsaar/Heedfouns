@@ -35,15 +35,14 @@
     </div>
 {% endblock %}
 {% block content %}
-    <div class="container">
         {% for message in get_flashed_messages() %}
-            <div class="alert alert-warning">
-                <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <div class="container"><div class="alert alert-warning">
+                <button type="button" class="close" data-dismiss="alert">&times;</button></div></div>
                 {{ message }}
-            </div>
         {% endfor %}
     {% block page_content %}{% endblock %}
-    </div>
+    <div class="container">
+    <div class="row">
         <div class="col-lg-12 text-center" style="margin-top: 15%">
         {% if g.user.is_authenticated %}
         <p>Logged in as: {{ g.user.name }}</p>
@@ -52,5 +51,6 @@
                 {% if g.user.is_authenticated %}
         <p><a href="/logout">[Log out]</a></p>
         {% endif %}
+    </div>
     </div>
 {% endblock %}

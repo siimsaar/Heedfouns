@@ -41,6 +41,14 @@ function editButtons() {
             } else {
                 newNameobj = document.getElementById(val);
                 newName = $(newNameobj).val();
+                if(newName == "") {
+                    alert("Input field is empty");
+                    return
+                }
+                if(String(newName).indexOf('-') == -1) {
+                    alert("Entry doesn't match (Artist - Album)");
+                    return
+                }
                 var names = {"oldn": oldName, "newn": newName};
                 $.ajax({
                     url: './rename',
