@@ -65,6 +65,7 @@ function editButtons() {
 }
 
 function deleteRow(val) {
+    val = String(val).replace(/ /g, '_');
     var row = document.getElementById(val);
     row.parentNode.removeChild(row);
 }

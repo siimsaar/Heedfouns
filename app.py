@@ -103,28 +103,47 @@ def lists():
     return render_template("lists.html", p4k_reviews=p4k_reviews, covers=covers, genre=genre, rv_links=rv_links)
 
 
-@app.route('/settings')
+@app.route('/settings', methods=['GET', 'POST'])
 @login_required
 def settings():
-    return render_template("settings.html", torrent_client=conf.torrent_client,
-                           fallback=conf.use_fallback,
-                           default_api=conf.default_search_api,
-                           transmission_u=conf.transmission_user,
-                           transmission_p=conf.transmission_password,
-                           qbitorrent_u=conf.qbittorrent_user,
-                           qbitorrent_p=conf.qbittorrent_password,
-                           tranmission_url=conf.transmission_url,
-                           qbitorrent_url=conf.qbittorrent_url,
-                           rutracker_u=conf.rutracker_user,
-                           rutracker_p=conf.rutracker_password,
-                           jpop_u=conf.jpopsuki_user,
-                           jpop_p=conf.jpopsuki_password)
+    if request.method == 'GET':
+        return render_template("settings.html", torrent_client=conf.torrent_client,
+                               fallback=conf.use_fallback,
+                               default_api=conf.default_search_api,
+                               transmission_u=conf.transmission_user,
+                               transmission_p=conf.transmission_password,
+                               qbitorrent_u=conf.qbittorrent_user,
+                               qbitorrent_p=conf.qbittorrent_password,
+                               tranmission_url=conf.transmission_url,
+                               qbitorrent_url=conf.qbittorrent_url,
+                               rutracker_u=conf.rutracker_user,
+                               rutracker_p=conf.rutracker_password,
+                               jpop_u=conf.jpopsuki_user,
+                               jpop_p=conf.jpopsuki_password)
+    else:
+        try:
+            conf.updateConf(request.form['tu_us'],
+                            request.form['tu_pw'],
+                            request.form['t_url'],
+                            request.form['q_us'],
+                            request.form['q_pw'],
+                            request.form['q_url'],
+                            request.form['p_tc'],
+                            request.form['ru_u'],
+                            request.form['ru_p'],
+                            request.form['j_u'],
+                            request.form['ju_p'],)
+        except:
+            traceback.print_exc()
+        reload(conf)
+        flash("Configuration updated and reloaded")
+        return redirect(url_for("settings"))
 
 
 @app.route('/search', methods=['GET', 'POST'])
 @login_required
 def search():
-    message = request.form['action']
+    message = request.form['search_term']
     return redirect(url_for('search_results', message=message))
 
 
@@ -243,6 +262,8 @@ def delete():
 @login_required
 def rename():
     edits = request.json
+    if not "-" in edits['newn'] or edits['newn'] is "":
+        return '', 500
     changetxt = Album.query.filter_by(album_name=edits['oldn']).first()
     Album.query.get(changetxt.id).album_name = edits['newn']
     db.session.commit()

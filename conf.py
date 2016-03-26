@@ -24,8 +24,7 @@ if not os.path.exists('config.cfg'):
     config.set('general', 'jpopsuki_password', '')
     with open('config.cfg', 'wb') as configfile:
         config.write(configfile)
-    print "• Configure in config.cfg and rerun"
-    os._exit(0)
+    print "• Configure in config.cfg or web"
 else:
     config.read('config.cfg')
     transmission_user = config.get("transmission", "user")
@@ -41,4 +40,22 @@ else:
     default_search_api = config.get("general", "default_search_api")
     jpopsuki_user = config.get("general", "jpopsuki_user")
     jpopsuki_password = config.get("general", "jpopsuki_password")
+
+def updateConf(*args):
+    print "• Writing new config"
+    config.set('transmission', 'user', args[0])
+    config.set('transmission', 'password', args[1])
+    config.set('transmission', 'url', args[2])
+    config.set('qbittorrent', 'user', args[3])
+    config.set('qbittorrent', 'password', args[4])
+    config.set('qbittorrent', 'url', args[5])
+    config.set('general', 'torrent_client', args[6])
+    config.set('general', 'use_fallback', '1')
+    config.set('general', 'default_search_api', 'lastfm')
+    config.set('general', 'rutracker_user', args[7])
+    config.set('general', 'rutracker_password', args[8])
+    config.set('general', 'jpopsuki_user', args[9])
+    config.set('general', 'jpopsuki_password', args[10])
+    with open('config.cfg', 'wb') as configfile:
+        config.write(configfile)
 

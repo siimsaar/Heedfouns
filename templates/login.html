@@ -4,10 +4,15 @@
 {% set active_page = "login" %}
 
 {% block page_content %}
+    <div class="container">
 <div class="page-header">
     <h1>Login</h1>
-</div>
+    </div></div>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
     {{ wtf.quick_form(form) }}
     <br/>
     <p>No account? Consider registering <a href="/reg">here</a></p>
+    </div></div></div>
 {% endblock %}
