@@ -2,13 +2,11 @@
 from flask import *
 from flask_sqlalchemy import SQLAlchemy
 from flask_cache import Cache
-from flask_wtf import Form
-from wtforms import StringField, PasswordField, SubmitField, ValidationError
-from wtforms.validators import DataRequired, Length, Regexp, equal_to
 from flask_bootstrap import Bootstrap
 from collections import OrderedDict
-from flask_login import LoginManager, login_user, login_required, UserMixin, current_user, logout_user
+from flask_login import LoginManager, login_user, login_required, current_user, logout_user
 import urllib2
+from models import *
 import string
 import time
 import threading
@@ -21,7 +19,6 @@ from lxml import etree
 import discogs_client
 import torrentdler
 import conf
-import random
 
 ##FLASK
 app = Flask(__name__)
@@ -68,10 +65,10 @@ def apisel():
     return api_s
 
 
-@app.route('/lists')
+@app.route('/lists/p4k')
 @login_required
-#@cache.cached(timeout=3600)
-def lists():
+# @cache.cached(timeout=3600)
+def p4k_listing():
     ureq = urllib2.Request(r'http://pitchfork.com/reviews/albums', headers={'User-Agent': "asdf"})
     site = urllib2.urlopen(ureq)
     parser = etree.HTMLParser()
@@ -100,7 +97,49 @@ def lists():
             covers.append(str(cover))
         except (TypeError):
             pass
-    return render_template("lists.html", p4k_reviews=p4k_reviews, covers=covers, genre=genre, rv_links=rv_links)
+    return render_template("p4k.html", p4k_reviews=p4k_reviews, covers=covers, genre=genre, rv_links=rv_links)
+
+
+@app.route('/lists')
+@login_required
+def list_landing():
+    return render_template("list.html")
+
+
+@app.route('/lists/mnet/<page>')
+@login_required
+def list_mnet(page):
+    ureq = urllib2.Request(r'http://mwave.interest.me/kpop/new-album.m?page.nowPage=' + page,
+                           headers={'User-Agent': "asdf"})
+    site = urllib2.urlopen(ureq)
+    parser = etree.HTMLParser()
+    tree = etree.parse(site, parser)
+    mnet_lists = []
+    covers = []
+    genre = []
+    for i in xrange(1, 21):
+        try:
+            h1 = tree.xpath('//*[@id="content"]/div[1]/ul/li[%d]/dl/dd[1]/a' % (i))[0].text
+            h2 = tree.xpath('//*[@id="content"]/div[1]/ul/li[%d]/dl/dd[2]/a' % (i))[0].text
+            cover = \
+                tree.xpath('//*[@id="content"]/div[1]/ul/li[%d]/dl/dt/a/img//@src' % (i))[
+                    0]
+            # moreinflink = tree.xpath('//*[@id="reviews"]/div[2]/div/div[1]/div/div/div/div[%d]/a//@href' % (i))[0]
+            try:
+                genres = tree.xpath('//*[@id="content"]/div[1]/ul/li[%d]/dl/dd[4]//text()[2]' % i)[
+                    0]
+            except:
+                genres = "N/A"
+            if h2 is " ":
+                continue
+            else:
+                appendable = '%s - %s' % (h2, h1)
+                mnet_lists.append(appendable)
+                genre.append(genres)
+                covers.append(str(cover))
+        except (TypeError):
+            pass
+    return render_template("mnet.html", mnet_lists=mnet_lists, covers=covers, genre=genre, page=int(page))
 
 
 @app.route('/settings', methods=['GET', 'POST'])
@@ -132,7 +171,7 @@ def settings():
                             request.form['ru_u'],
                             request.form['ru_p'],
                             request.form['j_u'],
-                            request.form['ju_p'],)
+                            request.form['ju_p'], )
         except:
             traceback.print_exc()
         reload(conf)
@@ -163,8 +202,8 @@ def search_results(message):
         elif search_provider == "discogs":
             discogs_search(message, srchquery)
     except (IndexError, pylast.WSError):
-        failedsearch = True
-        return render_template("index.html", failedsearch=failedsearch)
+        flash("Couldn't find any albums", 'error')
+        return render_template("index.html")
     return render_template("search.html", srchquery=srchquery)
 
 
@@ -301,12 +340,15 @@ def m_info(artist, album):
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    if current_user.is_authenticated:
+        return redirect(url_for("index"))
     form = Login()
     if form.validate_on_submit():
         user = User.query.filter_by(name=form.name.data).first()
         if user is not None:
-            login_user(user, remember=True)
-            return redirect(url_for("index"))
+            if User.check_password(user, form.password.data):
+                login_user(user, remember=True)
+                return redirect(url_for("index"))
         flash("Invalid username or password", 'error')
     return render_template("login.html", form=form)
 
@@ -319,6 +361,8 @@ def logout():
 
 @app.route('/reg', methods=['GET', 'POST'])
 def regacc():
+    if current_user.is_authenticated:
+        return redirect(url_for("index"))
     form = Registration()
     if form.validate_on_submit():
         user = User(name=form.name.data, password=form.password.data)
@@ -339,51 +383,6 @@ def unauthorized():
     return redirect(url_for("login"))
 
 
-class Album(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    album_name = db.Column(db.TEXT, unique=True)
-    status = db.Column(db.TEXT, unique=False)
-
-    def __init__(self, album_name, status):
-        self.album_name = album_name
-        self.status = status
-
-    def __repr__(self):
-        return '<Album %r>' % self.album_name
-
-
-class User(db.Model, UserMixin):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(24), unique=True)
-    password = db.Column(db.String(24), unique=False)
-
-    def __init__(self, name, password):
-        self.name = name
-        self.password = password
-
-    def __repr__(self):
-        return '<User %r>' % self.name
-
-
-class Login(Form):
-    name = StringField('Username', validators=[DataRequired()])
-    password = PasswordField('Password', validators=[DataRequired()])
-    submit = SubmitField('Log In')
-
-
-class Registration(Form):
-    name = StringField('Username', validators=[DataRequired(), Length(1, 24),
-                                               Regexp('^[A-Za-z][A-Za-z0-9_.]*$', 0, "Invalid chars")])
-    password = PasswordField('Password', validators=[DataRequired(), equal_to('password2', "Passwords dont match!"),
-                                                     Length(4, 24, "Password too short ( 4 chars min ) ")])
-    password2 = PasswordField('Confirm pw', validators=[DataRequired()])
-    submit = SubmitField('Register')
-
-    def validate_name(self, field):
-        if User.query.filter_by(name=field.data).first():
-            raise ValidationError('Username already exists')
-
-
 @app.before_request
 def get_current_user():
     g.user = current_user
@@ -396,5 +395,5 @@ def get_uptime():
 
 if __name__ == '__main__':
     if not os.path.exists('history.db'):
-        db.create_all()
+        init_db()
     app.run(debug=True)

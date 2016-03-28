@@ -8,11 +8,6 @@
         <h1>Search for albums</h1>
     </div>
     </div>
-    {% if failedsearch == True %}
-        <div class="container">
-        <div class="alert alert-warning">Failed to find albums!</div>
-        </div>
-    {% endif %}
     <form action="{{ url_for('search') }}" method="post">
         <div class="container">
             <div class="col-md-6">

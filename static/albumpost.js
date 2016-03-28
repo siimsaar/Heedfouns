@@ -52,6 +52,9 @@ function moreinfo(bttn, artist, album) {
                     }
                 }
                 for (i = 0; i < data.similar_artists.length; i++) {
+                    if (i == 3) {
+                        $(similar).append('<br/>');
+                    }
                     if (i == data.similar_artists.length - 1) {
                         $(similar).append('<a href="/results/' + data.similar_artists[i] + '">' + data.similar_artists[i] + '</a>');
                     } else {
