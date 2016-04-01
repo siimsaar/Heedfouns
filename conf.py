@@ -22,6 +22,9 @@ if not os.path.exists('config.cfg'):
     config.set('general', 'rutracker_password', '')
     config.set('general', 'jpopsuki_user', '')
     config.set('general', 'jpopsuki_password', '')
+    config.add_section('auto')
+    config.set('auto', 'enable', '0')
+    config.set('auto', 'check_int', '24')
     with open('config.cfg', 'wb') as configfile:
         config.write(configfile)
     print "• Configure in config.cfg or web"
@@ -40,6 +43,8 @@ else:
     default_search_api = config.get("general", "default_search_api")
     jpopsuki_user = config.get("general", "jpopsuki_user")
     jpopsuki_password = config.get("general", "jpopsuki_password")
+    automation_status = config.get("auto", "enable")
+    automation_interval = config.get("auto", "check_int")
 
 def updateConf(*args):
     print "• Writing new config"
@@ -56,6 +61,13 @@ def updateConf(*args):
     config.set('general', 'rutracker_password', args[8])
     config.set('general', 'jpopsuki_user', args[9])
     config.set('general', 'jpopsuki_password', args[10])
+    with open('config.cfg', 'wb') as configfile:
+        config.write(configfile)
+
+
+def updateAutomation(*args):
+    config.set('auto', 'enable', args[0])
+    config.set('auto', 'check_int', args[1])
     with open('config.cfg', 'wb') as configfile:
         config.write(configfile)
 

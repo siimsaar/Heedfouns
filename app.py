@@ -26,30 +26,32 @@ from wtforms.validators import DataRequired, Length, Regexp, equal_to
 import conf
 import torrentdler
 
-##FLASK
+# FLASK
 app = Flask(__name__)
 cache = Cache(app, config={'CACHE_TYPE': 'simple'})
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.secret_key = 'whateva'
 
-##BOOTSTRAP
+# BOOTSTRAP
 Bootstrap(app)
 app.config['BOOTSTRAP_SERVE_LOCAL'] = True
 app.config['BOOTSTRAP_USE_MINIFIED'] = False
 
-##FLASK-LOGIN
+# FLASK-LOGIN
 login_manager = LoginManager()
 login_manager.init_app(app)
 
-## SQLALCHEMY
+# SQLALCHEMY
 db = SQLAlchemy(app)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'history.db')
 
+# MISC
 discg = discogs_client.Client
 q = Queue.Queue()
 starttime = datetime.now()
-
+a_running = 0
+t_running = 0
 
 @app.route('/', methods=['GET', 'POST'])
 @app.route('/index', methods=['GET', 'POST'])
@@ -229,10 +231,69 @@ def lastfm_search(message, srchquery, covers):
         srchquery.append(str(i[0]).decode('utf-8'))
 
 
-@app.route('/auto', methods=['GET', 'POST'])
+@app.route('/auto', methods=['GET', 'POST', 'DELETE'])
 @login_required
 def automation():
-    return render_template("auto.html")
+    if request.method == "GET":
+        s_al = QueueAlbum.query.all()
+        scheduled_albums = OrderedDict()
+        for i in reversed(xrange(len(s_al))):
+            scheduled_albums[s_al[i].album_name] = s_al[i].date
+        t_ar = TrackedArtists.query.all()
+        tracked_artists = []
+        for i in reversed(xrange(len(t_ar))):
+            tracked_artists.append(t_ar[i].artist_name)
+        return render_template("auto.html", scheduled_albums=scheduled_albums, tracked_artists=tracked_artists)
+    if request.method == 'POST':
+        artist_n = request.form['art_name']
+        db.session.add(TrackedArtists(artist_name=artist_n))
+        db.session.commit()
+        return "", 202
+    if request.method == 'DELETE':
+        query_a = TrackedArtists.query.filter_by(artist_name=request.form['tbdeleted'])
+        query_a.delete()
+        db.session.commit()
+        return "", 202
+
+
+@app.route('/auto/conf', methods=['GET', 'POST'])
+@login_required
+def automation_conf():
+    if request.method == 'GET':
+        a_enabled = conf.automation_status
+        a_interval = conf.automation_interval
+        return jsonify(a_enabled=a_enabled, a_interval=a_interval)
+    if request.method == 'POST':
+        try:
+            enable_b = request.form['enable_b']
+        except:
+            enable_b = conf.automation_status
+        try:
+            interval = request.form['interval']
+        except:
+            interval = conf.automation_interval
+        conf.updateAutomation(enable_b, interval)
+        reload(conf)
+        print interval
+        print enable_b
+        return "", 202
+
+
+@app.route('/auto/run', methods=['POST'])
+@login_required
+def run_automation():
+    global a_running, t_running
+    if request.form['run_type'] == "album_check":
+        if a_running == 1:
+            return "", 202
+        print "performing 0"
+        a_running = 1
+    else:
+        if t_running == 1:
+            return "", 202
+        print "performing 1"
+        t_running = 1
+    return "", 202
 
 
 @app.route('/dl', methods=['GET', 'POST'])
@@ -290,36 +351,29 @@ def initDl(q):
                 pass
 
 
-@app.route('/status')
+@app.route('/status', methods=['GET', 'DELETE', 'PUT'])
 @login_required
 def queue():
-    wholedb = Album.query.all()
-    album_history = OrderedDict()
-    for i in reversed(xrange(len(wholedb))):
-        album_history[wholedb[i].album_name] = wholedb[i].status
-    return render_template("status.html", album_history=album_history)
-
-
-@app.route('/del', methods=['POST'])
-@login_required
-def delete():
-    tobedeleted = request.form['alname']
-    query_a = Album.query.filter_by(album_name=tobedeleted)
-    query_a.delete()
-    db.session.commit()
-    return '', 204
-
-
-@app.route('/rename', methods=['POST'])
-@login_required
-def rename():
-    edits = request.json
-    if not "-" in edits['newn'] or edits['newn'] is "":
-        return '', 500
-    changetxt = Album.query.filter_by(album_name=edits['oldn']).first()
-    Album.query.get(changetxt.id).album_name = edits['newn']
-    db.session.commit()
-    return '', 204
+    if request.method == "GET":
+        wholedb = Album.query.all()
+        album_history = OrderedDict()
+        for i in reversed(xrange(len(wholedb))):
+            album_history[wholedb[i].album_name] = wholedb[i].status
+        return render_template("status.html", album_history=album_history)
+    if request.method == "DELETE":
+        tobedeleted = request.form['alname']
+        query_a = Album.query.filter_by(album_name=tobedeleted)
+        query_a.delete()
+        db.session.commit()
+        return '', 204
+    if request.method == "PUT":
+        edits = request.json
+        if not "-" in edits['newn'] or edits['newn'] is "":
+            return '', 500
+        changetxt = Album.query.filter_by(album_name=edits['oldn']).first()
+        Album.query.get(changetxt.id).album_name = edits['newn']
+        db.session.commit()
+        return '', 204
 
 
 @app.route('/more_info/<artist>/<album>', methods=['GET', 'POST'])
@@ -421,6 +475,32 @@ class Album(db.Model):
 
     def __repr__(self):
         return '<Album %r>' % self.album_name
+
+
+class TrackedArtists(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    artist_name = db.Column(db.TEXT, unique=True)
+
+    def __init__(self, artist_name):
+        self.artist_name = artist_name
+
+    def __repr__(self):
+        return '<TrackedA %r>' % self.artist_name
+
+
+class QueueAlbum(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    album_name = db.Column(db.TEXT, unique=True)
+    date = db.Column(db.TEXT, unique=False)
+    status = db.Column(db.TEXT, unique=False)
+
+    def __init__(self, album_name, date, status):
+        self.album_name = album_name
+        self.date = date
+        self.status = status
+
+    def __repr__(self):
+        return '<PlannedA %r>' % self.album_name
 
 
 class User(db.Model, UserMixin):

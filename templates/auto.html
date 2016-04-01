@@ -9,11 +9,99 @@
         </div>
     </div>
     <div class="container">
-        <div class="col-md-6">
+        <div class="row">
+            <div class="col-md-6 col-xs-8">
+                <p>Automatically download new albums/EPs upon release</p>
+                <br/>
+                <h4>• Add artist to tracking:</h4>
+                <div class="col-xs-6">
+                    <input id="add_field" class="form-control input-sm" name="art_t" type="text" value="">
+                </div>
+                <span><button style="margin-top: 2px" id="add_bttn" class="btn btn-primary btn-xs">Add</button></span>
+                <br/><br/>
+                <h4>• Currently tracked artists:</h4>
+                <table class="table table-hover">
+                    <thead>
+                    <tr>
+                        <th>Artist</th>
+                        <th class="text-right">Function</th>
+                    </tr>
+                    </thead>
+                    <tbody id="tr_art">
+                    {% for i in tracked_artists %}
+                        {% set rowloop = loop %}
+                        <tr id="{{ tracked_artists|length - (rowloop.index - 1) }}-tr">
+                            <td>{{ i }}</td>
+                            <td class="text-right">
+                                <button value="{{ i }}" id="{{ tracked_artists|length - (rowloop.index - 1) }}-row"
+                                        name="del" class="btn btn-danger btn-xs">Delete
+                                </button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                <br/>
+                <h4>• Scheduled for download:</h4>
+                <table class="table table-hover">
+                    <thead>
+                    <tr>
+                        <th>Album</th>
+                        <th class="text-right">Date</th>
+                    </tr>
+                    </thead>
+                    <tbody id="sc_alb">
+                    {% for i, j in scheduled_albums.iteritems() %}
+                        <tr>
+                            <td>{{ i }}</td>
+                            <td class="text-right">{{ j }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+        </div>
+            <div class="col-md-6 col-xs-8">
+                <div class="panel panel-default">
+                    <div class="panel-heading">Status:</div>
+                    <div class="panel-body">
+                        <p style="display: inline-block;"> - Last check for new albums</p><span class="pull-right"><a
+                            id="album_check" href="/run/rlcheck">[RUN]</a></span>
+                        <br>
+                        <p style="display: inline-block;"> - Last check for torrents</p><span class="pull-right"><a
+                            id="torrent_check" href="/run/tcheck">[RUN]</a></span>
+                    </div>
+                </div>
+                <br/>
+                <h4>• Configure:</h4>
+                <table class="table table-hover">
+                    <thead>
+                    <tr>
+                        <th>Setting</th>
+                        <th class="text-right">Status</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>Enable automation</td>
+                        <td class="text-right">
+                            <button id="enbttn" class="btn btn-primary btn-xs">Enable</button>
+                        </td>
+                    </tr>
+                    <tr id="interval_in">
+                        <td>Check interval (in hours)</td>
+                        <td class="text-right">
+                            <input id="inter_field" type="number" class="form-control-custom-2" name="art_t" value="0">
+                            <span><button class="btn btn-primary btn-xs align-better" id="save_bttn">Save
+                            </button></span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+    </div>
         </div>
     </div>
 {% endblock %}
 {% block scripts %}
     {{ super() }}
-    <script src="{{ url_for('.static', filename='apipost.js') }}"></script>
+    <script src="{{ url_for('.static', filename='automation.js') }}"></script>
 {% endblock %}

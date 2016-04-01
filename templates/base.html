@@ -19,12 +19,12 @@
                 <ul class="nav navbar-nav">
                     <li {% if active_page == "index" %}class="active"{% endif %}><a href="/"><span
                             class="glyphicon glyphicon-search"></span> Search</a></li>
-                    <li {% if active_page == "lists" %}class="active"{% endif %}><a href="/lists"><span
+                    <li {% if active_page == "list" %}class="active"{% endif %}><a href="/lists"><span
                             class="glyphicon glyphicon-list-alt"></span> Lists</a></li>
                     <li {% if active_page == "status" %}class="active"{% endif %}><a href="/status"><span
                             class="glyphicon glyphicon-book"></span> History</a>
                     </li>
-                    <li style="display: none" {% if active_page == "auto" %}class="active"{% endif %}><a
+                    <li {% if active_page == "auto" %}class="active"{% endif %}><a
                             href="/auto"><span
                             class="glyphicon glyphicon-plane"></span> Automation</a>
                     </li>

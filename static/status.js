@@ -19,8 +19,8 @@ function deleteButtons() {
         bttns[i].addEventListener("click", function () {
             var val = $(this).val();
             $.ajax({
-                url: './del',
-                type: "POST",
+                url: '/status',
+                type: "DELETE",
                 success: deleteRow(val),
                 data: { alname: val }
             })
@@ -51,10 +51,10 @@ function editButtons() {
                 }
                 var names = {"oldn": oldName, "newn": newName};
                 $.ajax({
-                    url: './rename',
+                    url: '/status',
                     dataType: "json",
                     contentType: "application/json; charset=utf-8",
-                    type: "POST",
+                    type: "PUT",
                     success: $(this).text('Edit'),
                     data: JSON.stringify(names)
                 });
