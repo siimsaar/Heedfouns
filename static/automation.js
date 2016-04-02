@@ -57,7 +57,7 @@ function addButton() {
         }
         table = document.getElementById('tr_art');
         table_elem = $(table).find('td');
-        for (i = 0; i < table_elem.length; i++) {
+        for (var i = 0; i < table_elem.length; i++) {
             if ($(table_elem[i]).text() == adf_val) {
                 alert("Artist already exists in table");
                 return
@@ -81,20 +81,27 @@ function deleteButtons() {
     var bttns = document.getElementsByName('del');
     for (i = 0; i < bttns.length; i++) {
         bttns[i].addEventListener("click", function () {
+            var id = $(this).attr('id');
+            var val = $(this).attr('value');
             $.ajax({
                 url: './auto',
                 type: "DELETE",
-                success: deleteRow($(this).attr('id')),
+                success: function () {
+                    id = id.split("-")[0] + "-tr";
+                    var row = document.getElementById(id);
+                    row.parentNode.removeChild(row);
+                    sch_table = document.getElementById('sc_alb');
+                    sch_td = $(sch_table).find('td');
+                    for (var i = 0; i < sch_td.length; i++) {
+                        if (String($(sch_td[i]).text()).split(" - ")[0] == val) {
+                            $(sch_td[i]).parent('tr').remove();
+                        }
+                    }
+                },
                 data: {tbdeleted: $(this).val()}
             })
         });
     }
-}
-
-function deleteRow(id) {
-    id = id.split("-")[0] + "-tr";
-    var row = document.getElementById(id);
-    row.parentNode.removeChild(row);
 }
 
 function runAlbumCheck() {

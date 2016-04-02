@@ -3,11 +3,7 @@ import Queue
 import os
 import string
 import threading
-import time
-import traceback
-import urllib2
 from collections import OrderedDict
-from datetime import datetime
 
 import discogs_client
 import pylast
@@ -25,6 +21,7 @@ from wtforms.validators import DataRequired, Length, Regexp, equal_to
 
 import conf
 import torrentdler
+from auto import *
 
 # FLASK
 app = Flask(__name__)
@@ -235,6 +232,15 @@ def lastfm_search(message, srchquery, covers):
 @login_required
 def automation():
     if request.method == "GET":
+        global l_a_check, l_t_check
+        try:
+            l_a_check
+        except:
+            l_a_check = "Never"
+        try:
+            l_t_check
+        except:
+            l_t_check = "Never"
         s_al = QueueAlbum.query.all()
         scheduled_albums = OrderedDict()
         for i in reversed(xrange(len(s_al))):
@@ -243,15 +249,20 @@ def automation():
         tracked_artists = []
         for i in reversed(xrange(len(t_ar))):
             tracked_artists.append(t_ar[i].artist_name)
-        return render_template("auto.html", scheduled_albums=scheduled_albums, tracked_artists=tracked_artists)
+        return render_template("auto.html", scheduled_albums=scheduled_albums,
+                               tracked_artists=tracked_artists, l_a_check=l_a_check, l_t_check=l_t_check)
     if request.method == 'POST':
         artist_n = request.form['art_name']
         db.session.add(TrackedArtists(artist_name=artist_n))
         db.session.commit()
         return "", 202
     if request.method == 'DELETE':
-        query_a = TrackedArtists.query.filter_by(artist_name=request.form['tbdeleted'])
+        deleted_artist = request.form['tbdeleted']
+        query_a = TrackedArtists.query.filter_by(artist_name=deleted_artist)
         query_a.delete()
+        for i in QueueAlbum.query.all():
+            if unicode(i.album_name).split(" - ")[0].lower() == unicode(deleted_artist).lower():
+                QueueAlbum.query.filter_by(album_name=i.album_name).delete()
         db.session.commit()
         return "", 202
 
@@ -286,8 +297,9 @@ def run_automation():
     if request.form['run_type'] == "album_check":
         if a_running == 1:
             return "", 202
-        print "performing 0"
         a_running = 1
+        look_for_artist()
+        a_running = 0
     else:
         if t_running == 1:
             return "", 202

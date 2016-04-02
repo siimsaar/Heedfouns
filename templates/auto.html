@@ -11,7 +11,7 @@
     <div class="container">
         <div class="row">
             <div class="col-md-6 col-xs-8">
-                <p>Automatically download new albums/EPs upon release</p>
+                <p>Schedule automatic downloads for new albums/EPs using Metacritic listings</p>
                 <br/>
                 <h4>• Add artist to tracking:</h4>
                 <div class="col-xs-6">
@@ -52,7 +52,8 @@
                     </thead>
                     <tbody id="sc_alb">
                     {% for i, j in scheduled_albums.iteritems() %}
-                        <tr>
+                        {% set rowloop = loop %}
+                        <tr id="{{ rowloop.index - 1 }}-str">
                             <td>{{ i }}</td>
                             <td class="text-right">{{ j }}</td>
                         </tr>
@@ -64,10 +65,12 @@
                 <div class="panel panel-default">
                     <div class="panel-heading">Status:</div>
                     <div class="panel-body">
-                        <p style="display: inline-block;"> - Last check for new albums</p><span class="pull-right"><a
+                        <p style="display: inline-block;">{{ l_a_check }} - Last check for new albums</p><span
+                            class="pull-right"><a
                             id="album_check" href="/run/rlcheck">[RUN]</a></span>
                         <br>
-                        <p style="display: inline-block;"> - Last check for torrents</p><span class="pull-right"><a
+                        <p style="display: inline-block;">{{ l_t_check }} - Last check for torrents</p><span
+                            class="pull-right"><a
                             id="torrent_check" href="/run/tcheck">[RUN]</a></span>
                     </div>
                 </div>
