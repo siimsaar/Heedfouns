@@ -3,7 +3,10 @@ import Queue
 import os
 import string
 import threading
+import time
+import traceback
 from collections import OrderedDict
+from datetime import datetime
 
 import discogs_client
 import pylast
@@ -232,6 +235,8 @@ def lastfm_search(message, srchquery, covers):
 @login_required
 def automation():
     if request.method == "GET":
+        a_enabled = conf.automation_status
+        a_interval = conf.automation_interval
         global l_a_check, l_t_check
         try:
             l_a_check
@@ -249,8 +254,10 @@ def automation():
         tracked_artists = []
         for i in reversed(xrange(len(t_ar))):
             tracked_artists.append(t_ar[i].artist_name)
+        print a_enabled
         return render_template("auto.html", scheduled_albums=scheduled_albums,
-                               tracked_artists=tracked_artists, l_a_check=l_a_check, l_t_check=l_t_check)
+                               tracked_artists=tracked_artists, l_a_check=l_a_check, l_t_check=l_t_check,
+                               a_enabled=a_enabled, a_interval=a_interval)
     if request.method == 'POST':
         artist_n = request.form['art_name']
         db.session.add(TrackedArtists(artist_name=artist_n))
@@ -267,13 +274,9 @@ def automation():
         return "", 202
 
 
-@app.route('/auto/conf', methods=['GET', 'POST'])
+@app.route('/auto/conf', methods=['POST', 'PUT'])
 @login_required
 def automation_conf():
-    if request.method == 'GET':
-        a_enabled = conf.automation_status
-        a_interval = conf.automation_interval
-        return jsonify(a_enabled=a_enabled, a_interval=a_interval)
     if request.method == 'POST':
         try:
             enable_b = request.form['enable_b']
@@ -285,8 +288,17 @@ def automation_conf():
             interval = conf.automation_interval
         conf.updateAutomation(enable_b, interval)
         reload(conf)
-        print interval
-        print enable_b
+        return "", 202
+    if request.method == 'PUT':
+        global l_a_check, l_t_check
+        try:
+            l_a_check = request.form['a_date']
+        except:
+            pass
+        try:
+            l_t_check = request.form['t_date']
+        except:
+            pass
         return "", 202
 
 

@@ -31,8 +31,9 @@
                         </td>
                     </tr>
                     <tr id="{{ row.index - 1}}" style="display: none">
-                    <td style="font-size: 12px"><img alt="album_pic" id="{{ row.index - 1 }}-cover" src="/static/100.png"
-                                                     style="vertical-align: top; width: 120px; height: 120px"><table style="display: inline-table; margin-left: 5px">
+                        <td style="font-size: 12px"><img name="cover_pic" alt="album_pic" id="{{ row.index - 1 }}-cover"
+                                                         src="/static/100.png"
+                                                         style="vertical-align: top; width: 120px; height: 120px"><table style="display: inline-table; margin-left: 5px">
                         <thead>
                         <tr>
                             <th>Info</th>
@@ -66,4 +67,5 @@
 {% block scripts %}
     {{ super() }}
     <script src="{{ url_for('.static', filename='albumpost.js') }}"></script>
+    <script src="{{ url_for('.static', filename='hover.js') }}"></script>
 {% endblock %}

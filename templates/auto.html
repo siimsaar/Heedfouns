@@ -10,7 +10,7 @@
     </div>
     <div class="container">
         <div class="row">
-            <div class="col-md-6 col-xs-8">
+            <div class="col-md-6 col-xs-12">
                 <p>Schedule automatic downloads for new albums/EPs using Metacritic listings</p>
                 <br/>
                 <h4>• Add artist to tracking:</h4>
@@ -61,15 +61,17 @@
                     </tbody>
                 </table>
         </div>
-            <div class="col-md-6 col-xs-8">
+            <div class="col-md-6 col-xs-12">
                 <div class="panel panel-default">
-                    <div class="panel-heading">Status:</div>
+                    <div class="panel-heading">Status / Force start:</div>
                     <div class="panel-body">
-                        <p style="display: inline-block;">{{ l_a_check }} - Last check for new albums</p><span
+                        <p style="display: inline-block;" id="a_check_date">{{ l_a_check }} - Last check for new
+                            albums</p><span
                             class="pull-right"><a
                             id="album_check" href="/run/rlcheck">[RUN]</a></span>
                         <br>
-                        <p style="display: inline-block;">{{ l_t_check }} - Last check for torrents</p><span
+                        <p style="display: inline-block;" id="t_check_date">{{ l_t_check }} - Last check for
+                            torrents</p><span
                             class="pull-right"><a
                             id="torrent_check" href="/run/tcheck">[RUN]</a></span>
                     </div>
@@ -87,13 +89,18 @@
                     <tr>
                         <td>Enable automation</td>
                         <td class="text-right">
+                            {% if a_enabled == "0" %}
                             <button id="enbttn" class="btn btn-primary btn-xs">Enable</button>
+                            {% else %}
+                                <button id="enbttn" class="btn btn-danger btn-xs">Disable</button>
+                            {% endif %}
                         </td>
                     </tr>
                     <tr id="interval_in">
                         <td>Check interval (in hours)</td>
                         <td class="text-right">
-                            <input id="inter_field" type="number" class="form-control-custom-2" name="art_t" value="0">
+                            <input id="inter_field" type="number" class="form-control-custom-2" name="art_t"
+                                   value="{{ a_interval }}">
                             <span><button class="btn btn-primary btn-xs align-better" id="save_bttn">Save
                             </button></span>
                         </td>

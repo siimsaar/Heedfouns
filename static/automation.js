@@ -108,11 +108,27 @@ function runAlbumCheck() {
     run_bttn = document.getElementById('album_check');
     run_bttn.addEventListener("click", function () {
         event.preventDefault();
+        this_bttn = $(this);
         $.ajax({
             url: './auto/run',
             type: "POST",
-            success: $(this).text("RUNNING"),
-            data: {run_type: "album_check"}
+            data: {run_type: "album_check"},
+            success: function () {
+                $(this_bttn).text("RUNNING");
+                date = new Date();
+                date_s = date.toLocaleString('en-GB');
+                var run = $.ajax({
+                    url: './auto/conf',
+                    type: "PUT",
+                    success: function () {
+                        $("#a_check_date").text(date_s + " - Last check for new albums")
+                    },
+                    data: {a_date: date_s}
+                });
+                run.fail(function () {
+                    $(this_bttn).text("FAIL");
+                })
+            }
         })
     });
 }
@@ -121,29 +137,28 @@ function runTorrentCheck() {
     run_bttn = document.getElementById('torrent_check');
     run_bttn.addEventListener("click", function () {
         event.preventDefault();
+        this_bttn = $(this);
         $.ajax({
             url: './auto/run',
             type: "POST",
-            success: $(this).text("RUNNING"),
-            data: {run_type: "torrent_check"}
+            data: {run_type: "torrent_check"},
+            success: function () {
+                $(this_bttn).text("RUNNING");
+                date = new Date();
+                date_s = date.toLocaleString('en-GB');
+                var run = $.ajax({
+                    url: './auto/conf',
+                    type: "PUT",
+                    success: function () {
+                        $("#t_check_date").text(date_s + " - Last check for new albums")
+                    },
+                    data: {t_date: date_s}
+                });
+                run.fail(function () {
+                    $(this_bttn).text("FAIL");
+                })
+            }
         })
-    });
-}
-
-function setInitialState() {
-    $.getJSON("/auto/conf", function (data) {
-        var isEnabled = data.a_enabled;
-        var interval = data.a_interval;
-        int_field = document.getElementById('inter_field');
-        $(int_field).attr('value', interval);
-        automationBttn = document.getElementById('enbttn');
-        if (isEnabled == 1) {
-            $(automationBttn).text("Disable");
-            $(automationBttn).attr('class', 'btn btn-danger btn-xs');
-        } else {
-            $(automationBttn).text("Enable");
-            $(automationBttn).attr('class', 'btn btn-primary btn-xs');
-        }
     });
 }
 
@@ -152,7 +167,6 @@ function WordtoUpper(string) {
 }
 
 window.addEventListener("load", function () {
-    setInitialState();
     enableButton();
     addButton();
     saveButton();
