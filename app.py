@@ -5,6 +5,7 @@ import string
 import threading
 import time
 import traceback
+import urllib2
 from collections import OrderedDict
 from datetime import datetime
 
@@ -17,6 +18,7 @@ from flask_login import LoginManager, login_user, login_required, current_user, 
 from flask_login import UserMixin
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import Form
+from flask.ext.sse import sse, send_event
 from lxml import etree
 from werkzeug.security import generate_password_hash, check_password_hash
 from wtforms import StringField, PasswordField, SubmitField, ValidationError
@@ -30,6 +32,8 @@ from auto import *
 app = Flask(__name__)
 cache = Cache(app, config={'CACHE_TYPE': 'simple'})
 basedir = os.path.abspath(os.path.dirname(__file__))
+app.debug = True
+app.register_blueprint(sse, url_prefix='/updates')
 app.secret_key = 'whateva'
 
 # BOOTSTRAP
@@ -320,6 +324,16 @@ def run_automation():
     return "", 202
 
 
+def pushtoListener(data):
+    print "ran"
+    send_event("scheduled", json.dumps(data), channel='sched')
+
+
+def pushtoListenerHistory(data):
+    print "ran"
+    send_event("history", json.dumps(data), channel='history')
+
+
 @app.route('/dl', methods=['GET', 'POST'])
 @login_required
 def download():
@@ -368,6 +382,9 @@ def initDl(q):
                 else:
                     db.session.add(rq_album)
                     db.session.commit()
+                    data = ({"name": result, "status": rq_album.status})
+                    with app.app_context():
+                        pushtoListenerHistory(data)
                 q.task_done()
             except:
                 traceback.print_exc()
@@ -568,4 +585,3 @@ class Registration(Form):
 if __name__ == '__main__':
     if not os.path.exists('history.db'):
         init_db()
-    app.run(debug=True, host='0.0.0.0')

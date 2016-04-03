@@ -3,21 +3,19 @@ function enableButton() {
     enable_bttn.addEventListener("click", function () {
         intf = document.getElementById('interval_in');
         if ($(this).text() == "Enable") {
-            $(this).text("Disable");
             $(this).attr('class', 'btn btn-danger btn-xs');
             $.ajax({
                 url: './auto/conf',
                 type: "POST",
-                success: console.log("todo"),
+                success: $(this).text("Disable"),
                 data: {enable_b: 1}
             })
         } else {
-            $(this).text("Enable");
-            $(this).attr('class', 'btn btn-info btn-xs');
+            $(this).attr('class', 'btn btn-primary btn-xs');
             $.ajax({
                 url: './auto/conf',
                 type: "POST",
-                success: console.log("todo"),
+                success: $(this).text("Enable"),
                 data: {enable_b: 0}
             })
         }
@@ -93,7 +91,7 @@ function deleteButtons() {
                     sch_table = document.getElementById('sc_alb');
                     sch_td = $(sch_table).find('td');
                     for (var i = 0; i < sch_td.length; i++) {
-                        if (String($(sch_td[i]).text()).split(" - ")[0] == val) {
+                        if (String($(sch_td[i]).text()).split(" - ")[0].toLowerCase() == val.toLowerCase()) {
                             $(sch_td[i]).parent('tr').remove();
                         }
                     }
@@ -109,12 +107,15 @@ function runAlbumCheck() {
     run_bttn.addEventListener("click", function () {
         event.preventDefault();
         this_bttn = $(this);
+        if ($(this).text() == "RUNNING") {
+            return
+        }
+        $(this_bttn).text("RUNNING");
         $.ajax({
             url: './auto/run',
             type: "POST",
             data: {run_type: "album_check"},
             success: function () {
-                $(this_bttn).text("RUNNING");
                 date = new Date();
                 date_s = date.toLocaleString('en-GB');
                 var run = $.ajax({
@@ -138,6 +139,9 @@ function runTorrentCheck() {
     run_bttn.addEventListener("click", function () {
         event.preventDefault();
         this_bttn = $(this);
+        if ($(this).text() == "RUNNING") {
+            return
+        }
         $.ajax({
             url: './auto/run',
             type: "POST",
@@ -150,7 +154,7 @@ function runTorrentCheck() {
                     url: './auto/conf',
                     type: "PUT",
                     success: function () {
-                        $("#t_check_date").text(date_s + " - Last check for new albums")
+                        $("#t_check_date").text(date_s + " - Last check for new torrents")
                     },
                     data: {t_date: date_s}
                 });
@@ -159,6 +163,18 @@ function runTorrentCheck() {
                 })
             }
         })
+    });
+}
+
+function updateListener() {
+    var source = new EventSource("/updates?channel=sched");
+    source.addEventListener('scheduled', function (sse) {
+        var data = JSON.parse(sse.data);
+        if (data.album == "EOF" || data.date == "EOF") {
+            $("#album_check").text("[RUN]");
+            return
+        }
+        $("#sc_alb").prepend("<tr><td>" + data.album + "</td><td class='text-right'>" + data.date + "</td></tr>");
     });
 }
 
@@ -173,4 +189,5 @@ window.addEventListener("load", function () {
     deleteButtons();
     runAlbumCheck();
     runTorrentCheck();
+    updateListener();
 });

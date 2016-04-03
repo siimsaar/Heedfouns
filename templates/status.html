@@ -19,7 +19,7 @@
                     <th class="col-lg-3 text-right">Function</th>
                 </tr>
                 </thead>
-                <tbody>
+                <tbody id="statustable">
                 {% for i, j in album_history.iteritems() %}
                     {% set rowloop = loop %}
                     <tr id="{{ i.replace(" ", "_") }}">

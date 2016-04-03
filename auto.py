@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from app import db, QueueAlbum, TrackedArtists
+import app
 # from models import *
 import urllib2
 from bs4 import BeautifulSoup
@@ -31,7 +31,7 @@ def get_upcoming_albums_from_metacritic():
 def look_for_artist():
     print "Checking for upcoming albums"
     ualbums = get_upcoming_albums_from_metacritic()
-    tracked_artists = TrackedArtists.query.all()
+    tracked_artists = app.TrackedArtists.query.all()
     for z in reversed(tracked_artists):
         for i, j in ualbums.iteritems():
             for x in j:
@@ -39,14 +39,17 @@ def look_for_artist():
                 if unicode(z.artist_name).lower() == artist_n[0].lower():
                     print ("%s - %s (%s)" % (artist_n[0], artist_n[1], unicode(i)))
                     name = artist_n[0] + " - " + artist_n[1]
-                    q_al = QueueAlbum(album_name=name, date=unicode(i), status="0")
+                    q_al = app.QueueAlbum(album_name=name, date=unicode(i), status="0")
                     try:
-                        db.session.add(q_al)
-                        db.session.commit()
+                        app.db.session.add(q_al)
+                        app.db.session.commit()
+                        data = ({"album": name, "date": unicode(i)})
+                        app.pushtoListener(data)
                     except:
-                        db.session.rollback()
+                        app.db.session.rollback()
                         continue
-
+    data = ({"album": "EOF", "date": "EOF"})
+    app.pushtoListener(data)
 
 def look_for_torrents():
     print "todo"
