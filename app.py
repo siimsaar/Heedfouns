@@ -6,6 +6,7 @@ import threading
 import time
 import traceback
 import urllib2
+from urllib import quote_plus
 from collections import OrderedDict
 from datetime import datetime
 
@@ -421,28 +422,28 @@ def queue():
 @login_required
 def m_info(artist, album):
     API_KEY = "d5e9e669b3a12715c860607e3ddce016"
-    lfm = pylast.LastFMNetwork(api_key=API_KEY)
-    g_artist = lfm.get_artist(artist)
-    g_album = lfm.get_album(artist, album)
-    tags = g_album.get_top_tags(limit=6)
-    cover = str(g_album.get_cover_image())
-    similar = g_artist.get_similar(limit=6)
-    tracks = g_album.get_tracks()
     tag_l = []
     trak_l = []
     similar_l = []
     release = "N/A"
-    for i in xrange(0, 5):
-        try:
-            if not str(tags[i][0]).isdigit():
-                tag_l.append(str(tags[i][0]))
-            else:
-                release = str(tags[i][0])
-            similar_l.append(str(similar[i][0]))
-        except:
-            continue
-    for j in tracks:
-        trak_l.append(str(j))
+    album_url = ("http://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key=%s&artist=%s&album=%s&format=json" % (
+        API_KEY, quote_plus(artist.encode('utf-8')), quote_plus(album.encode('utf-8'))))
+    artist_url = ("http://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist=%s&api_key=%s&format=json" % (
+        quote_plus(artist.encode('utf-8')), API_KEY))
+    album = urllib2.urlopen(album_url)
+    data = json.load(album)
+    cover = data['album']['image'][3]['#text']
+    for track in data['album']['tracks']['track']:
+        trak_l.append("%s - %s" % (artist, track['name']))
+    for tag in data['album']['tags']['tag']:
+        if str(tag['name']).isdigit():
+            release = tag['name']
+    artist = urllib2.urlopen(artist_url)
+    data_a = json.load(artist)
+    for tag in data_a['artist']['tags']['tag']:
+        tag_l.append(tag['name'])
+    for similar in data_a['artist']['similar']['artist']:
+        similar_l.append(similar['name'])
     return jsonify(tags=tag_l, similar_artists=similar_l, track_list=trak_l, cover=cover, release=release)
 
 

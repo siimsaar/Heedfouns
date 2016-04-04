@@ -75,14 +75,18 @@ function updateListener() {
             last_item = parseInt($("#statustable tr td input:last").attr('id')) + 1;
         }
         if (String(data.status).split(" ")[0] == "Fail:") {
-            status_td = "<td><span class='label label-danger'> Error</span>" + String(data.status).replace('Fail: ', '') + "</td>"
-            button_td = '<td class="text-right"><button type="button" value="' + data.name + '" class="btn btn-danger btn-xs">Remove</button><button type="button" value="' + last_item + '" class="btn btn-info btn-xs">Edit</button><button type="button" value="' + data.name + '" class="btn btn-primary btn-xs">Retry</button></td> '
+            status_td = "<td><span class='label label-danger'>Error</span>" + String(data.status).replace('Fail: ', ' ') + "</td>"
+            button_td = '<td class="text-right"><button type="button" value="' + data.name + '" class="btn btn-danger btn-xs">Remove</button> <button type="button" value="' + last_item + '" class="btn btn-info btn-xs">Edit</button> <button type="button" value="' + data.name + '" class="btn btn-primary btn-xs">Retry</button></td> '
         } else {
-            status_td = "<td><span class='label label-success'> Success</span>" + data.status + "</td>"
-            button_td = '<td class="text-right"><button type="button" value="' + data.name + '" class="btn btn-danger btn-xs">Remove</button><button type="button" value="' + last_item + '" class="btn btn-info btn-xs">Edit</button></td> '
+            status_td = "<td><span class='label label-success'>Success</span> " + data.status + "</td>"
+            button_td = '<td class="text-right"><button type="button" value="' + data.name + '" class="btn btn-danger btn-xs">Remove</button> <button type="button" value="' + last_item + '" class="btn btn-info btn-xs">Edit</button></td> '
         }
         name_td = '<td><input class="form-control-custom input-sm" name="src_album" id="' + last_item + '" type="text" value="' + data.name + '" readonly="readonly"></td>'
-        comp_td = '<tr id="' + String(data.name).replace(/ /g, '_') + '">' + name_td + status_td + button_td + '</tr>'
+        comp_td = '<tr id="' + String(data.name).replace(/ /g, '_') + '">'
+            + name_td
+            + status_td
+            + button_td
+            + '</tr>'
         $("#statustable").prepend(comp_td);
         ticker += 1;
         retryButtons();

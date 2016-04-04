@@ -5,7 +5,7 @@
 {% block page_content %}
     <div class="container">
     <div class="page-header">
-        <h1>Status</h1>
+        <h1>History of downloads</h1>
     </div>
     </div>
     <div class="container">
@@ -28,9 +28,9 @@
                         </td>
                         <td>
                             {% if "Fail" in j %}
-                                <span class="label label-danger"> Error</span>
+                                <span class="label label-danger">Error</span>
                             {% elif "Added" in j %}
-                                <span class="label label-success"> Success</span>
+                                <span class="label label-success">Success</span>
                             {% endif %}{{ j.replace("Fail:", "") }}</td>
                         <td class="text-right">
                             <button type="button" value="{{ i }}" class="btn btn-danger btn-xs">Remove</button>

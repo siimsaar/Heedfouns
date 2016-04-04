@@ -15,5 +15,6 @@ transmissionrpc == 0.11
 Werkzeug == 0.11.4
 WTForms == 2.1
 KickassAPI == 1.0.4
+beautifulsoup4 == 4.4.1
 lxml == 3.6.0
 qbittorrent == 0.1.6
