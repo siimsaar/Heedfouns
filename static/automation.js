@@ -122,7 +122,7 @@ function runAlbumCheck() {
                     url: './auto/conf',
                     type: "PUT",
                     success: function () {
-                        $("#a_check_date").text(date_s + " - Last check for new albums")
+                        $("#a_check_date").text(date_s + " - Last check for albums")
                     },
                     data: {a_date: date_s}
                 });
@@ -142,19 +142,19 @@ function runTorrentCheck() {
         if ($(this).text() == "RUNNING") {
             return
         }
+        $(this_bttn).text("RUNNING");
         $.ajax({
             url: './auto/run',
             type: "POST",
             data: {run_type: "torrent_check"},
             success: function () {
-                $(this_bttn).text("RUNNING");
                 date = new Date();
                 date_s = date.toLocaleString('en-GB');
                 var run = $.ajax({
                     url: './auto/conf',
                     type: "PUT",
                     success: function () {
-                        $("#t_check_date").text(date_s + " - Last check for new torrents")
+                        $("#t_check_date").text(date_s + " - Last check for torrents")
                     },
                     data: {t_date: date_s}
                 });
@@ -170,8 +170,12 @@ function updateListener() {
     var source = new EventSource("/updates?channel=sched");
     source.addEventListener('scheduled', function (sse) {
         var data = JSON.parse(sse.data);
-        if (data.album == "EOF" || data.date == "EOF") {
+        if (data.album == "EOF_A" || data.date == "EOF_A") {
             $("#album_check").text("[RUN]");
+            return
+        }
+        if (data.album == "EOF_T" || data.date == "EOF_T") {
+            $("#torrent_check").text("[RUN]");
             return
         }
         $("#sc_alb").prepend("<tr><td>" + data.album + "</td><td class='text-right'>" + data.date + "</td></tr>");

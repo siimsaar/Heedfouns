@@ -27,7 +27,7 @@ from wtforms.validators import DataRequired, Length, Regexp, equal_to
 
 import conf
 import torrentdler
-from auto import *
+import auto
 
 # FLASK
 app = Flask(__name__)
@@ -235,22 +235,14 @@ def lastfm_search(message, srchquery, covers):
     for i in artist:
         srchquery.append(str(i[0]).decode('utf-8'))
 
-
 @app.route('/auto', methods=['GET', 'POST', 'DELETE'])
 @login_required
 def automation():
     if request.method == "GET":
+        from auto import l_a_check
+        from auto import l_t_check
         a_enabled = conf.automation_status
         a_interval = conf.automation_interval
-        global l_a_check, l_t_check
-        try:
-            l_a_check
-        except:
-            l_a_check = "Never"
-        try:
-            l_t_check
-        except:
-            l_t_check = "Never"
         s_al = QueueAlbum.query.all()
         scheduled_albums = OrderedDict()
         for i in reversed(xrange(len(s_al))):
@@ -293,15 +285,15 @@ def automation_conf():
             interval = conf.automation_interval
         conf.updateAutomation(enable_b, interval)
         reload(conf)
+        auto.reschedule()
         return "", 202
     if request.method == 'PUT':
-        global l_a_check, l_t_check
         try:
-            l_a_check = request.form['a_date']
+            auto.l_a_check = request.form['a_date']
         except:
             pass
         try:
-            l_t_check = request.form['t_date']
+            auto.l_t_check = request.form['t_date']
         except:
             pass
         return "", 202
@@ -315,13 +307,13 @@ def run_automation():
         if a_running == 1:
             return "", 202
         a_running = 1
-        look_for_artist()
+        auto.look_for_artist(forced=True)
         a_running = 0
     else:
         if t_running == 1:
             return "", 202
-        print "performing 1"
-        t_running = 1
+        auto.look_for_torrents(forced=True)
+        t_running = 0
     return "", 202
 
 
@@ -337,8 +329,15 @@ def pushtoListenerHistory(data):
 
 @app.route('/dl', methods=['GET', 'POST'])
 @login_required
-def download():
-    result = request.form['alname']
+def download(name=None):
+    try:
+        result = request.form['alname']
+    except:
+        try:
+            result = name
+        except:
+            print "download undefined"
+            traceback.print_exc()
     time.sleep(1)
     if q.unfinished_tasks > 0:
         q.put(result)
@@ -367,6 +366,10 @@ def initDl(q):
             dlalbum.getCookies()
             dlalbum.getAlbums(result, client=conf.torrent_client)
             rq_album = Album(result, "Added")
+            try:
+                QueueAlbum.query.filter_by(album_name=result).delete()
+            except:
+                print "unable to remove scheduler album from queue"
         except ValueError:
             rq_album = Album(result, "Fail: Configuration error")
         except ReferenceError:
@@ -502,10 +505,6 @@ def get_uptime():
     g.time = str(datetime.now() - starttime)[:7]
 
 
-def init_db():
-    db.create_all()
-
-
 class Album(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     album_name = db.Column(db.TEXT, unique=True)
@@ -583,6 +582,5 @@ class Registration(Form):
             raise ValidationError('Username already exists')
 
 
-if __name__ == '__main__':
-    if not os.path.exists('history.db'):
-        init_db()
+if not os.path.exists('history.db'):
+    db.create_all()
