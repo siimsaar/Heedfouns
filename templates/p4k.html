@@ -29,12 +29,10 @@
                         <td>{{ genre[rowloop.index - 1] }}</td>
                         <td class="text-center">
                             <button value="{{ i }}" class="btn btn-primary btn-xs">Download</button>
-                            <a class="btn btn-danger btn-xs"
-                               href="{{ rv_links[rowloop.index - 1] }}" target="_blank"
-                               style="text-decoration: none; color: inherit">
+                            <a class="btn btn-danger btn-xs remove_dec"
+                               href="{{ rv_links[rowloop.index - 1] }}" target="_blank">
                                 Review
                             </a>
-                            <button value="{{ i }}" class="btn btn-info btn-xs">Info</button>
                         </td>
                     </tr>
                 {% endfor %}

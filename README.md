@@ -1,7 +1,12 @@
 # untitled
 
-## function?
-Downloads torrents and adds them to your torrent client automatically.
+## Function
+* Automatically find torrents from Torrentz.eu/RuTracker/Jpopsuki and add them to your torrent client
+* Check for new albums from your favourite artists and immediately download them on the release date
+* Search for new albums with LastFM or Discogs API
 
-## what works so far
-Everything
+## Dependencies
+* Python2 and it's libs found in requirements.txt
+* Redis
+* Gunicorn WSGI
+* Gevent

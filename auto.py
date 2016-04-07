@@ -76,8 +76,8 @@ def look_for_torrents(forced=False):
 
 
 def reschedule():
-    sched.reschedule_job(job_id="auto_A", trigger='interval', seconds=int(app.conf.automation_interval))
-    sched.reschedule_job(job_id="auto_T", trigger='interval', seconds=int(app.conf.automation_interval))
+    sched.reschedule_job(job_id="auto_A", trigger='interval', minutes=int(app.conf.automation_interval) * 60)
+    sched.reschedule_job(job_id="auto_T", trigger='interval', minutes=int(app.conf.automation_interval) * 60)
 
 
 # ugly
@@ -85,6 +85,6 @@ l_t_check = "Never"
 l_a_check = "Never"
 
 sched = GeventScheduler()
-sched.add_job(look_for_artist, 'interval', id="auto_A", seconds=int(app.conf.automation_interval))
-sched.add_job(look_for_torrents, 'interval', id="auto_T", seconds=int(app.conf.automation_interval))
+sched.add_job(look_for_artist, 'interval', id="auto_A", minutes=int(app.conf.automation_interval) * 60)
+sched.add_job(look_for_torrents, 'interval', id="auto_T", minutes=int(app.conf.automation_interval) * 60)
 sched.start()

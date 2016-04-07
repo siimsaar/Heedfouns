@@ -128,6 +128,7 @@ def list_mnet(page):
     parser = etree.HTMLParser()
     tree = etree.parse(site, parser)
     mnet_lists = []
+    more_info = []
     covers = []
     genre = []
     for i in xrange(1, 21):
@@ -137,7 +138,7 @@ def list_mnet(page):
             cover = \
                 tree.xpath('//*[@id="content"]/div[1]/ul/li[%d]/dl/dt/a/img//@src' % (i))[
                     0]
-            # moreinflink = tree.xpath('//*[@id="reviews"]/div[2]/div/div[1]/div/div/div/div[%d]/a//@href' % (i))[0]
+            moreinflink = tree.xpath('//*[@id="content"]/div[1]/ul/li[%d]/dl/dd[1]/a//@href' % (i))[0]
             try:
                 genres = tree.xpath('//*[@id="content"]/div[1]/ul/li[%d]/dl/dd[4]//text()[2]' % i)[
                     0]
@@ -148,11 +149,12 @@ def list_mnet(page):
             else:
                 appendable = '%s - %s' % (h2, h1)
                 mnet_lists.append(appendable)
+                more_info.append('http://mwave.interest.me' + moreinflink)
                 genre.append(genres)
                 covers.append(str(cover))
         except (TypeError):
             pass
-    return render_template("mnet.html", mnet_lists=mnet_lists, covers=covers, genre=genre, page=int(page))
+    return render_template("mnet.html", mnet_lists=mnet_lists, covers=covers, genre=genre, page=int(page), more_info=more_info)
 
 
 @app.route('/settings', methods=['GET', 'POST'])
@@ -257,9 +259,11 @@ def automation():
                                a_enabled=a_enabled, a_interval=a_interval)
     if request.method == 'POST':
         artist_n = request.form['art_name']
+        if(len(artist_n)) == 0:
+            return "", 400
         db.session.add(TrackedArtists(artist_name=artist_n))
         db.session.commit()
-        return "", 202
+        return "", 204
     if request.method == 'DELETE':
         deleted_artist = request.form['tbdeleted']
         query_a = TrackedArtists.query.filter_by(artist_name=deleted_artist)
@@ -268,7 +272,7 @@ def automation():
             if unicode(i.album_name).split(" - ")[0].lower() == unicode(deleted_artist).lower():
                 QueueAlbum.query.filter_by(album_name=i.album_name).delete()
         db.session.commit()
-        return "", 202
+        return "", 204
 
 
 @app.route('/auto/conf', methods=['POST', 'PUT'])
@@ -286,7 +290,7 @@ def automation_conf():
         conf.updateAutomation(enable_b, interval)
         reload(conf)
         auto.reschedule()
-        return "", 202
+        return "", 204
     if request.method == 'PUT':
         try:
             auto.l_a_check = request.form['a_date']
@@ -296,7 +300,7 @@ def automation_conf():
             auto.l_t_check = request.form['t_date']
         except:
             pass
-        return "", 202
+        return "", 204
 
 
 @app.route('/auto/run', methods=['POST'])
@@ -305,16 +309,16 @@ def run_automation():
     global a_running, t_running
     if request.form['run_type'] == "album_check":
         if a_running == 1:
-            return "", 202
+            return "", 204
         a_running = 1
         auto.look_for_artist(forced=True)
         a_running = 0
     else:
         if t_running == 1:
-            return "", 202
+            return "", 204
         auto.look_for_torrents(forced=True)
         t_running = 0
-    return "", 202
+    return "", 204
 
 
 def pushtoListener(data):

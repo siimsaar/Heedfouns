@@ -72,6 +72,7 @@ function addButton() {
             data: {art_name: adf_val}
         });
         deleteButtons();
+        $(adf).val("");
     })
 }
 
