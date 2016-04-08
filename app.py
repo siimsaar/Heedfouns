@@ -248,7 +248,8 @@ def automation():
         s_al = QueueAlbum.query.all()
         scheduled_albums = OrderedDict()
         for i in reversed(xrange(len(s_al))):
-            scheduled_albums[s_al[i].album_name] = s_al[i].date
+            if s_al[i].status == "0":
+                scheduled_albums[s_al[i].album_name] = s_al[i].date
         t_ar = TrackedArtists.query.all()
         tracked_artists = []
         for i in reversed(xrange(len(t_ar))):
@@ -371,7 +372,9 @@ def initDl(q):
             dlalbum.getAlbums(result, client=conf.torrent_client)
             rq_album = Album(result, "Added")
             try:
-                QueueAlbum.query.filter_by(album_name=result).delete()
+                succeess_album = QueueAlbum.query.filter_by(album_name=result).first()
+                print succeess_album.status
+                succeess_album.status = "1"
             except:
                 print "unable to remove scheduler album from queue"
         except ValueError:

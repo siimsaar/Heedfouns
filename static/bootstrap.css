@@ -5122,8 +5122,8 @@ a.thumbnail.active {
   color: #e6e6e6;
 }
 .alert-warning {
-  background-color: #f39c12;
-  border-color: #f39c12;
+  background-color: #375a7f;
+  border-color: #333840;
   color: #ffffff;
 }
 .alert-warning hr {
@@ -7123,4 +7123,27 @@ a.list-group-item-danger.active:focus {
 }
 .form_gap {
   padding-top: 5%;
+}
+.inline_media_table {
+  display: inline-table;
+  margin-left: 5px
+}
+.btn-track {
+  background-color: #8ea8c3;
+  border-color: #677d92;
+}
+.btn-track:focus,
+.btn-track.focus {
+  background-color: #607481;
+  border-color: #3c4150;
+}
+.btn-track:hover {
+  background-color: #576577;
+  border-color: #3a4654;
+}
+.btn-track:active,
+.btn-track.active,
+.open > .dropdown-toggle.btn-track {
+  background-color: #49515d;
+  border-color: #262b36;
 }
