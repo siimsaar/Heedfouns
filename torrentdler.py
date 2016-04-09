@@ -105,13 +105,15 @@ class TorrentDl():
                 #traceback.print_exc()
                 print "✗ Unable to establish connection"
                 raise IOError
+        except IOError:
+            raise IOError  # real ugly stuff
         except:
             print "✗ No torrents found in ruTracker"
             if self.fallback:
                 try:
                     self.fallback_tracker(client, album)
                 except ReferenceError:
-                    raise ReferenceError
+                    raise ReferenceError # real ugly stuff
                 except:
                     print "✗ Unable to establish connection"
                     raise IOError

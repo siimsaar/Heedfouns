@@ -8,5 +8,8 @@
 ## Dependencies
 * Python2 and its libs found in requirements.txt
 * Redis
-* Gunicorn WSGI
+* Gunicorn
 * Gevent
+* Flask-SSE
+* Phantomjs
+* Sqlite

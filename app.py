@@ -80,7 +80,7 @@ def apisel():
 
 @app.route('/lists/p4k')
 @login_required
-# @cache.cached(timeout=3600)
+@cache.cached(timeout=86400)
 def p4k_listing():
     ureq = urllib2.Request(r'http://pitchfork.com/reviews/albums', headers={'User-Agent': "asdf"})
     site = urllib2.urlopen(ureq)
@@ -121,6 +121,7 @@ def list_landing():
 
 @app.route('/lists/mnet/<page>')
 @login_required
+@cache.cached(timeout=86400)
 def list_mnet(page):
     ureq = urllib2.Request(r'http://mwave.interest.me/kpop/new-album.m?page.nowPage=' + page,
                            headers={'User-Agent': "asdf"})
@@ -197,7 +198,11 @@ def settings():
 @app.route('/search', methods=['GET', 'POST'])
 @login_required
 def search():
-    message = request.form['search_term']
+    message = request.form['search_term'].encode('utf-8')
+    if len(str(message)) <= 0:
+        print "empty search"
+        flash("Empty search, enter an artist!")
+        return redirect(url_for('index'))
     return redirect(url_for('search_results', message=message))
 
 
@@ -235,7 +240,8 @@ def lastfm_search(message, srchquery, covers):
     lfm = pylast.LastFMNetwork(api_key=API_KEY)
     artist = lfm.get_artist(message).get_top_albums(limit=25)
     for i in artist:
-        srchquery.append(str(i[0]).decode('utf-8'))
+        if not str(i[0]).decode('utf-8').split(" - ")[1] == "(null)":
+            srchquery.append(str(i[0]).decode('utf-8'))
 
 @app.route('/auto', methods=['GET', 'POST', 'DELETE'])
 @login_required

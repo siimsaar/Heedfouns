@@ -48,4 +48,3 @@ function initial(id) {
     document.getElementById(id).setAttribute('class', 'btn btn-primary active')
 
 }
-
