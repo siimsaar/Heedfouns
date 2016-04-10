@@ -2751,6 +2751,10 @@ fieldset[disabled] .checkbox label {
   font-size: 15px;
   line-height: 1.5;
 }
+.input-sm-shl {
+  height: 27px;
+  font-size: 15px;
+}
 select.input-sm {
   height: 35px;
   line-height: 35px;

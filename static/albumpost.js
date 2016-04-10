@@ -76,7 +76,25 @@ function moreinfo(bttn, artist, album) {
     }
 }
 
+function search() {
+$("#search_ex").keyup(function(){
+   for(var i = 0; i < 25; i++) {
+       if($('#' + String(i) +'-min-row td:first').text().toLowerCase().indexOf($(this).val().toLowerCase()) === -1) {
+           $('#' + String(i) +'-min-row').hide();
+           $('#' + String(i)).hide();
+           button = $('#' + String(i) + '-button-used');
+           $(button).text("More info");
+           $(button).attr('class', 'btn btn-info btn-xs');
+       } else {
+           $('#' + String(i) +'-min-row').show();
+       }
+   }
+});
+}
+
+
 window.addEventListener("load", function () {
     getDlBttns();
-    getInfoBttns()
+    getInfoBttns();
+    search();
 });

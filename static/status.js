@@ -92,6 +92,7 @@ function updateListener() {
         retryButtons();
         editButtons();
         deleteButtons();
+        $("#search_ex").trigger('keyup');
     });
 }
 
@@ -106,4 +107,21 @@ window.addEventListener("load",function() {
     deleteButtons();
     editButtons();
     updateListener();
+    search();
+    initialTableSize = $('#statustable tr').length;
 });
+function search() {
+$("#search_ex").keyup(function(){
+   for(var i = 0; i < initialTableSize; i++) {
+       try {
+       curRow = $('#' + String(i));
+       if($(curRow).val().toLowerCase().indexOf($(this).val().toLowerCase()) === -1) {
+        $(curRow).closest("tr").hide();
+       } else {
+           $(curRow).closest("tr").show();
+       }
+   } catch (err) {
+       }
+   }
+});
+}
