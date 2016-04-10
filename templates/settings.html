@@ -23,7 +23,7 @@
                     <div class="form-group">
                         Select: <select class="form-control" name="p_tc" id="tclient">
                         {% if torrent_client == "qbittorrent" %}
-                            <option>qbitorrent</option>
+                            <option>qbittorrent</option>
                             <option>transmission</option>
                         {% else %}
                             <option>transmission</option>
@@ -35,11 +35,11 @@
         </div>
         <div class="col-lg-6">
             <h3>Client settings</h3>
-            <p>Transmission url: <input class="form-control" name="t_url" type="text" value="{{ tranmission_url }}"></p>
+            <p>Transmission url: <input class="form-control" placeholder="IP:PORT" name="t_url" type="text" value="{{ tranmission_url }}"></p>
             <p>Transmission user:<input class="form-control" name="tu_us" type="text" value="{{ transmission_u }}"></p>
             <p>Transmission pw: <input class="form-control" name="tu_pw" type="password" value="{{ transmission_p }}">
             </p>
-            <p>Qbitorrent url: <input class="form-control" name="q_url" type="text" value="{{ qbitorrent_url }}"></p>
+            <p>Qbitorrent url: <input class="form-control" placeholder="IP:PORT" name="q_url" type="text" value="{{ qbitorrent_url }}"></p>
             <p>Qbitorrent user: <input class="form-control" name="q_us" type="text" value="{{ qbitorrent_u }}"></p>
             <p>Qbitorrent pw: <input class="form-control" name="q_pw" type="password" value="{{ qbitorrent_p }}"></p>
         </div>

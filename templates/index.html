@@ -3,7 +3,7 @@
 {% set active_page = "index" %}
 
 {% block page_content %}
-    <div class="container">
+    <div id="page_c" class="container">
     <div class="page-header">
         <h1>Search for albums</h1>
     </div>
@@ -14,7 +14,7 @@
                 <h3>Enter an artist's name:</h3>
                 <div id="custom-search-input">
                     <div class="input-group col-md-12">
-                        <input type="text" title="search" name="search_term" class="form-control input-md">
+                        <input type="text" title="search" id="src_box" name="search_term" class="form-control input-md">
                     <span class="input-group-btn">
                         <button class="btn btn-primary btn-md" type="submit">
                             <span class="glyphicon glyphicon-search"></span>

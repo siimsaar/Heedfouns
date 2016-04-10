@@ -58,6 +58,7 @@ starttime = datetime.now()
 a_running = 0
 t_running = 0
 
+
 @app.route('/', methods=['GET', 'POST'])
 @app.route('/index', methods=['GET', 'POST'])
 @login_required
@@ -155,7 +156,8 @@ def list_mnet(page):
                 covers.append(str(cover))
         except (TypeError):
             pass
-    return render_template("mnet.html", mnet_lists=mnet_lists, covers=covers, genre=genre, page=int(page), more_info=more_info)
+    return render_template("mnet.html", mnet_lists=mnet_lists, covers=covers, genre=genre, page=int(page),
+                           more_info=more_info)
 
 
 @app.route('/settings', methods=['GET', 'POST'])
@@ -177,12 +179,15 @@ def settings():
                                jpop_p=conf.jpopsuki_password)
     else:
         try:
+            qbit_url = request.form['q_url']
+            if not qbit_url.startswith('http://'):
+                qbit_url = "http://" + qbit_url
             conf.updateConf(request.form['tu_us'],
                             request.form['tu_pw'],
                             request.form['t_url'],
                             request.form['q_us'],
                             request.form['q_pw'],
-                            request.form['q_url'],
+                            qbit_url,
                             request.form['p_tc'],
                             request.form['ru_u'],
                             request.form['ru_p'],
@@ -243,6 +248,7 @@ def lastfm_search(message, srchquery, covers):
         if not str(i[0]).decode('utf-8').split(" - ")[1] == "(null)":
             srchquery.append(str(i[0]).decode('utf-8'))
 
+
 @app.route('/auto', methods=['GET', 'POST', 'DELETE'])
 @login_required
 def automation():
@@ -266,7 +272,7 @@ def automation():
                                a_enabled=a_enabled, a_interval=a_interval)
     if request.method == 'POST':
         artist_n = request.form['art_name']
-        if(len(artist_n)) == 0:
+        if (len(artist_n)) == 0:
             return "", 400
         db.session.add(TrackedArtists(artist_name=artist_n))
         db.session.commit()

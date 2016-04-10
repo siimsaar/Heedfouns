@@ -171,11 +171,11 @@ function updateListener() {
     var source = new EventSource("/updates?channel=sched");
     source.addEventListener('scheduled', function (sse) {
         var data = JSON.parse(sse.data);
-        if (data.album == "EOF_A" || data.date == "EOF_A") {
+        if (data.album == "C_A" || data.date == "C_A") {
             $("#album_check").text("[RUN]");
             return
         }
-        if (data.album == "EOF_T" || data.date == "EOF_T") {
+        if (data.album == "C_T" || data.date == "C_T") {
             $("#torrent_check").text("[RUN]");
             return
         }

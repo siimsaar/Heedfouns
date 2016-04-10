@@ -54,7 +54,7 @@ def look_for_artist(forced=False):
                         except:
                             app.db.session.rollback()
                             continue
-        data = ({"album": "EOF_A", "date": "EOF_A"})
+        data = ({"album": "C_A", "date": "C_A"})
         app.pushtoListener(data)
 
 
@@ -71,7 +71,7 @@ def look_for_torrents(forced=False):
             if date <= todays_date:
                 if int(query.status) == 0:
                     app.download(query.album_name)
-        data = ({"album": "EOF_T", "date": "EOF_T"})
+        data = ({"album": "C_T", "date": "C_T"})
         app.pushtoListener(data)
 
 

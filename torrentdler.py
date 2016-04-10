@@ -7,7 +7,7 @@ import time
 from retry import retry
 import requests
 import traceback
-import pytorrentz
+from urllib import quote_plus
 from selenium import webdriver
 from qbittorrent import Client
 from selenium.common.exceptions import NoSuchElementException
@@ -98,7 +98,7 @@ class TorrentDl():
                                 i + 1, torrents[i].text, k, seedcount[i], size[i].text)
         try:
             torrents[0].click()
-            dl_link = driver.find_element_by_xpath(r'//*[@id="tor-hash"]')
+            dl_link = "magnet:?xt=urn:btih:" + driver.find_element_by_xpath(r'//*[@id="tor-hash"]').text
             try:
                 self.establishRPC(dl_link, client)
             except:
@@ -119,14 +119,35 @@ class TorrentDl():
                     raise IOError
 
     def fallback_tracker(self, client, album):
-        print "• Searching from Torrentz.eu"
-        album = album.replace("-", "")
+        print "• Searching from Kickass"
         try:
-            search = pytorrentz.search(album, limit=5, quality='good', order='peers')
-            self.establishRPC(search[0].get_magnet_uri(), client)
+            uq_artist = quote_plus(album.split(" - ")[0].encode('utf-8'))
+            uq_album = quote_plus(album.split(" - ")[1].encode('utf-8'))
+            driver.get('https://kat.cr/usearch/' + uq_artist + '%20' + uq_album + '%20category:music/')
+            try:
+                seed_count = driver.find_element_by_css_selector('.green.center')
+            except:
+                print "✗ No torrents found in Kickass"
+                raise Exception
+            if seed_count <= 0:
+                print "Torrents are all dead"
+                raise Exception
+            magnet_hash = driver.find_elements_by_class_name('icon16')
+            magnet_hash_href = magnet_hash[0].get_attribute('href')
+            if magnet_hash_href.split(":")[0] == "magnet":
+                print "successfully obtained magnet"
+                try:
+                    self.establishRPC(magnet_hash_href, client)
+                except:
+                    traceback.print_exc()
+                    raise IOError
+            else:
+                raise Exception
+        except IOError:
+            raise IOError
         except:
             #traceback.print_exc()
-            print "✗ No torrents found in Torrentz.eu"
+            print "✗ No torrents found in Kickass"
             try:
                 print "• Searching from Jpopsuki"
                 global jlogged
@@ -141,8 +162,8 @@ class TorrentDl():
     def establishRPC(self, magnet_link, client, type="magnet"):
         print "• Establishing connection to", client
         if client == "transmission":
-            tc = transmissionrpc.Client(self.transmission_url,
-                                        port=9091,
+            tc = transmissionrpc.Client(self.transmission_url.split(":")[0],
+                                        port=self.transmission_url.split(":")[1],
                                         user=self.transmission_user,
                                         password=self.transmission_password)
             if type == "magnet":
@@ -157,7 +178,7 @@ class TorrentDl():
             if qb._is_authenticated is True:
                 if type == "magnet":
                     print "• Adding magnet to", client
-                    qb.download_from_link(magnet_prefix + magnet_link.text)
+                    qb.download_from_link(magnet_link)
                 else:
                     print "• Adding torrent to", client
                     qb.download_from_file(file('torrent.torrent'))
