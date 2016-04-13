@@ -4,6 +4,28 @@ import os
 
 config = ConfigParser.RawConfigParser()
 
+def setvars():
+    global transmission_url, transmission_password, transmission_user, qbittorrent_url,\
+        qbittorrent_password, qbittorrent_url, qbittorrent_user, use_fallback, torrent_client,\
+        rutracker_user, rutracker_password, default_search_api, jpopsuki_user, jpopsuki_password, \
+        automation_status, automation_interval
+    config.read('config.cfg')
+    transmission_user = config.get("transmission", "user")
+    transmission_password = config.get("transmission", "password")
+    transmission_url = config.get("transmission", "url")
+    qbittorrent_user = config.get("qbittorrent", "user")
+    qbittorrent_password = config.get("qbittorrent", "password")
+    qbittorrent_url = config.get("qbittorrent", "url")
+    use_fallback = config.getint("general", "use_fallback")
+    torrent_client = config.get("general", "torrent_client")
+    rutracker_user = config.get("general", "rutracker_user")
+    rutracker_password = config.get("general", "rutracker_password")
+    default_search_api = config.get("general", "default_search_api")
+    jpopsuki_user = config.get("general", "jpopsuki_user")
+    jpopsuki_password = config.get("general", "jpopsuki_password")
+    automation_status = config.get("auto", "enable")
+    automation_interval = config.get("auto", "check_int")
+
 if not os.path.exists('config.cfg'):
     print "• No configuration detected, generating config file"
     config.add_section('transmission')
@@ -28,23 +50,9 @@ if not os.path.exists('config.cfg'):
     with open('config.cfg', 'wb') as configfile:
         config.write(configfile)
     print "• Configure in config.cfg or web"
+    setvars()
 else:
-    config.read('config.cfg')
-    transmission_user = config.get("transmission", "user")
-    transmission_password = config.get("transmission", "password")
-    transmission_url = config.get("transmission", "url")
-    qbittorrent_user = config.get("qbittorrent", "user")
-    qbittorrent_password = config.get("qbittorrent", "password")
-    qbittorrent_url = config.get("qbittorrent", "url")
-    use_fallback = config.getint("general", "use_fallback")
-    torrent_client = config.get("general", "torrent_client")
-    rutracker_user = config.get("general", "rutracker_user")
-    rutracker_password = config.get("general", "rutracker_password")
-    default_search_api = config.get("general", "default_search_api")
-    jpopsuki_user = config.get("general", "jpopsuki_user")
-    jpopsuki_password = config.get("general", "jpopsuki_password")
-    automation_status = config.get("auto", "enable")
-    automation_interval = config.get("auto", "check_int")
+    setvars()
 
 def updateConf(*args):
     print "• Writing new config"

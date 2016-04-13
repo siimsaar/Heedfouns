@@ -42,6 +42,9 @@ function moreinfo(bttn, artist, album) {
                 var tag = document.getElementById(id + "-tags");
                 var similar = document.getElementById(id + "-similar");
                 var tracks = document.getElementById(id + "-tracks");
+                $(release).find('i').remove();
+                $(tag).find('i').remove();
+                $(similar).find('i').remove();
                 cover.setAttribute('src', data.cover);
                 $(release).append(data.release);
                 for (i = 0; i < data.tags.length; i++) {
