@@ -36,9 +36,6 @@ app.register_blueprint(sse, url_prefix='/updates')
 # SESSION KEY
 app.secret_key = 'Something secure'
 
-# CSRF
-CsrfProtect(app)
-
 # BOOTSTRAP
 Bootstrap(app)
 app.config['BOOTSTRAP_SERVE_LOCAL'] = True
@@ -505,8 +502,9 @@ def regacc():
         user = User(name=form.name.data, password=form.password.data)
         db.session.add(user)
         db.session.commit()
-        flash("Registered")
-        return redirect(url_for("login"))
+        login_user(user, remember=True)
+        flash("Successfully registered, start searching for albums!")
+        return redirect(url_for("index"))
     return render_template("reg.html", form=form)
 
 
