@@ -11,5 +11,5 @@
 * Gunicorn
 * Gevent
 * Flask-SSE
-* Phantomjs
+* Phantomjs 2.x
 * Sqlite
