@@ -1,55 +1,64 @@
+/* jshint -W097 */
+/* jshint -W040 */
+'use strict';
+
 function retryButtons() {
     var bttns = document.getElementsByClassName("btn btn-primary btn-xs");
-    for (i = 0; i < bttns.length; i++) {
+    for (var i = 0; i < bttns.length; i++) {
         bttns[i].addEventListener("click", function () {
             var val = $(this).val();
             $.ajax({
                 url: './dl',
                 type: "POST",
                 success: $(this).prop('disabled', 'true').text('Added'),
-                data: { alname: val }
-            })
+                data: {alname: val}
+            });
         });
     }
 }
 
 function deleteButtons() {
     var bttns = document.getElementsByClassName("btn btn-danger btn-xs");
-    for (i = 0; i < bttns.length; i++) {
+    for (var i = 0; i < bttns.length; i++) {
         bttns[i].addEventListener("click", function () {
             var val = $(this).val();
             $.ajax({
                 url: '/status',
                 type: "DELETE",
                 success: deleteRow(val),
-                data: { alname: val }
-            })
+                data: {alname: val}
+            });
         });
     }
 }
 
 function editButtons() {
     var bttns = document.getElementsByClassName('btn btn-info btn-xs');
-    for (i = 0; i < bttns.length; i++) {
+    for (var i = 0; i < bttns.length; i++) {
         bttns[i].addEventListener("click", function () {
             var val = $(this).val();
-            if ($(this).text() == "Edit") {
-                oldNameobj = document.getElementById(val);
-                oldName = $(oldNameobj).val();
+            if ($(this).text() === "Edit") {
+                if(window.editing === true) {
+                    alert("You are already editing one entry");
+                    return;
+                }
+                window.editing = true;
+                var oldNameobj = document.getElementById(val);
+                window.oldName = $(oldNameobj).val();
                 $(oldNameobj).removeAttr('readonly');
                 $(this).text('Save');
             } else {
-                newNameobj = document.getElementById(val);
-                newName = $(newNameobj).val();
-                if(newName == "") {
+                var newNameobj = document.getElementById(val);
+                var newName = $(newNameobj).val();
+                if (newName === "") {
                     alert("Input field is empty");
-                    return
+                    return;
                 }
-                if(String(newName).indexOf('-') == -1) {
+                if (String(newName).indexOf('-') === -1) {
                     alert("Entry doesn't match (Artist - Album)");
-                    return
+                    return;
                 }
-                var names = {"oldn": oldName, "newn": newName};
+                var names = {"oldn": window.oldName, "newn": newName};
                 $.ajax({
                     url: '/status',
                     dataType: "json",
@@ -58,6 +67,7 @@ function editButtons() {
                     success: $(this).text('Edit'),
                     data: JSON.stringify(names)
                 });
+                window.editing = false;
                 $(newNameobj).attr('readonly', 'readonly');
             }
         });
@@ -70,23 +80,19 @@ function updateListener() {
     source.addEventListener('history', function (sse) {
         var data = JSON.parse(sse.data);
         if (ticker > 0) {
-            last_item = parseInt($("#statustable tr td input:first").attr('id')) + 1;
+            var last_item = parseInt($("#statustable tr td input:first").attr('id')) + 1;
         } else {
-            last_item = parseInt($("#statustable tr td input:last").attr('id')) + 1;
+            var last_item = parseInt($("#statustable tr td input:last").attr('id')) + 1;
         }
-        if (String(data.status).split(" ")[0] == "Fail:") {
-            status_td = "<td><span class='label label-danger'>Error</span>" + String(data.status).replace('Fail: ', ' ') + "</td>";
-            button_td = '<td class="text-right"><button type="button" value="' + data.name + '" class="btn btn-danger btn-xs">Remove</button> <button type="button" value="' + last_item + '" class="btn btn-info btn-xs">Edit</button> <button type="button" value="' + data.name + '" class="btn btn-primary btn-xs">Retry</button></td> ';
+        if (String(data.status).split(" ")[0] === "Fail:") {
+            var status_td = "<td><span class='label label-danger'>Error</span>" + String(data.status).replace('Fail: ', ' ') + "</td>";
+            var button_td = '<td class="text-right"><button type="button" value="' + data.name + '" class="btn btn-danger btn-xs">Remove</button> <button type="button" value="' + last_item + '" class="btn btn-info btn-xs">Edit</button> <button type="button" value="' + data.name + '" class="btn btn-primary btn-xs">Retry</button></td> ';
         } else {
-            status_td = "<td><span class='label label-success'>Success</span>" + " " + data.status + "</td>";
-            button_td = '<td class="text-right"><button type="button" value="' + data.name + '" class="btn btn-danger btn-xs">Remove</button> <button type="button" value="' + last_item + '" class="btn btn-info btn-xs">Edit</button></td> ';
+            var status_td = "<td><span class='label label-success'>Success</span>" + " " + data.status + "</td>";
+            var button_td = '<td class="text-right"><button type="button" value="' + data.name + '" class="btn btn-danger btn-xs">Remove</button> <button type="button" value="' + last_item + '" class="btn btn-info btn-xs">Edit</button></td> ';
         }
-        name_td = '<td><input class="form-control-custom input-sm" name="src_album" id="' + last_item + '" type="text" value="' + data.name + '" readonly="readonly"></td>';
-        comp_td = '<tr id="' + String(data.name).replace(/ /g, '_') + '">'
-            + name_td
-            + status_td
-            + button_td
-            + '</tr>';
+        var name_td = '<td><input class="form-control-custom input-sm" name="src_album" id="' + last_item + '" type="text" value="' + data.name + '" readonly="readonly"></td>';
+        var comp_td = '<tr id="' + String(data.name).replace(/ /g, '_') + '">' + name_td + status_td + button_td + '</tr>';
         $("#statustable").prepend(comp_td);
         ticker += 1;
         retryButtons();
@@ -102,26 +108,27 @@ function deleteRow(val) {
     row.parentNode.removeChild(row);
 }
 
-window.addEventListener("load",function() {
+window.addEventListener("load", function () {
     retryButtons();
     deleteButtons();
     editButtons();
     updateListener();
     search();
-    initialTableSize = $('#statustable tr').length;
+    window.initialTableSize = $('#statustable tr').length;
 });
+
 function search() {
-$("#search_ex").keyup(function(){
-   for(var i = 0; i < initialTableSize; i++) {
-       try {
-       curRow = $('#' + String(i));
-       if($(curRow).val().toLowerCase().indexOf($(this).val().toLowerCase()) === -1) {
-        $(curRow).closest("tr").hide();
-       } else {
-           $(curRow).closest("tr").show();
-       }
-   } catch (err) {
-       }
-   }
-});
+    $("#search_ex").keyup(function () {
+        for (var i = 0; i < window.initialTableSize; i++) {
+            try {
+                var curRow = $('#' + String(i));
+                if ($(curRow).val().toLowerCase().indexOf($(this).val().toLowerCase()) === -1) {
+                    $(curRow).closest("tr").hide();
+                } else {
+                    $(curRow).closest("tr").show();
+                }
+            } catch (err) {
+            }
+        }
+    });
 }
