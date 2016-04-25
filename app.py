@@ -34,7 +34,7 @@ app.debug = True
 app.register_blueprint(sse, url_prefix='/updates')
 
 # SESSION KEY
-app.secret_key = 'Something secure'
+app.secret_key = 'something secure here if going prod'
 
 # BOOTSTRAP
 Bootstrap(app)
@@ -53,7 +53,7 @@ from models import User, Album, TrackedArtists, QueueAlbum
 from forms import Login, Registration
 
 # MISC
-discg = discogs_client.Client
+discg = discogs_client.Client # Discogs search API
 q = Queue.Queue()  # FIFO
 starttime = datetime.now()  # UPTIME
 
@@ -81,88 +81,6 @@ def apisel():
     api_s = request.form['apiselec']
     return api_s
 
-
-@app.route('/lists/p4k')
-@login_required
-@cache.cached(timeout=86400)
-def p4k_listing():
-    ureq = urllib2.Request(r'http://pitchfork.com/reviews/albums', headers={'User-Agent': "asdf"})
-    site = urllib2.urlopen(ureq)
-    parser = etree.HTMLParser()
-    tree = etree.parse(site, parser)
-    p4k_reviews = []
-    rv_links = []
-    covers = []
-    genre = []
-    for i in xrange(1, 25):
-        try:
-            h1 = tree.xpath('//*[@id="reviews"]/div[2]/div/div[1]/div[1]/div/div/div[%d]/a/div[2]/ul/li' % (i))[0].text
-            h2 = tree.xpath('//*[@id="reviews"]/div[2]/div/div[1]/div[1]/div/div/div[%d]/a/div[2]/h2' % (i))[0].text
-            cover = \
-                tree.xpath('//*[@id="reviews"]/div[2]/div/div[1]/div[1]/div/div/div[%d]/a/div[1]/div/img//@src' % (i))[
-                    0]
-            reviewlink = tree.xpath('//*[@id="reviews"]/div[2]/div/div[1]/div/div/div/div[%d]/a//@href' % (i))[0]
-            try:
-                genres = tree.xpath('//*[@id="reviews"]/div[2]/div/div[1]/div[1]/div/div/div[%d]/div/ul[1]/li/a' % i)[
-                    0].text
-            except:
-                genres = "N/A"
-            appendable = '%s - %s' % (h1, h2)
-            p4k_reviews.append(appendable)
-            genre.append(genres)
-            rv_links.append("http://pitchfork.com" + reviewlink)
-            covers.append(str(cover))
-        except (TypeError):
-            pass
-    return render_template("p4k.html", p4k_reviews=p4k_reviews, covers=covers, genre=genre, rv_links=rv_links)
-
-
-@app.route('/lists')
-@login_required
-def list_landing():
-    return render_template("list.html")
-
-
-@app.route('/lists/mnet/<page>')
-@login_required
-@cache.cached(timeout=86400)
-def list_mnet(page):
-    ureq = urllib2.Request(r'http://mwave.interest.me/kpop/new-album.m?page.nowPage=' + page,
-                           headers={'User-Agent': "asdf"})
-    site = urllib2.urlopen(ureq)
-    parser = etree.HTMLParser()
-    tree = etree.parse(site, parser)
-    mnet_lists = []
-    more_info = []
-    covers = []
-    genre = []
-    for i in xrange(1, 21):
-        try:
-            h1 = tree.xpath('//*[@id="content"]/div[1]/ul/li[%d]/dl/dd[1]/a' % (i))[0].text
-            h2 = tree.xpath('//*[@id="content"]/div[1]/ul/li[%d]/dl/dd[2]/a' % (i))[0].text
-            cover = \
-                tree.xpath('//*[@id="content"]/div[1]/ul/li[%d]/dl/dt/a/img//@src' % (i))[
-                    0]
-            moreinflink = tree.xpath('//*[@id="content"]/div[1]/ul/li[%d]/dl/dd[1]/a//@href' % (i))[0]
-            try:
-                genres = tree.xpath('//*[@id="content"]/div[1]/ul/li[%d]/dl/dd[4]//text()[2]' % i)[
-                    0]
-            except:
-                genres = "N/A"
-            if h2 is " ":
-                continue
-            else:
-                appendable = '%s - %s' % (h2, h1)
-                mnet_lists.append(appendable)
-                more_info.append('http://mwave.interest.me' + moreinflink)
-                genre.append(genres)
-                covers.append(str(cover))
-        except (TypeError):
-            pass
-    return render_template("mnet.html", mnet_lists=mnet_lists, covers=covers, genre=genre, page=int(page),
-                           more_info=more_info)
-
-
 @app.route('/settings', methods=['GET', 'POST'])
 @login_required
 def settings():
@@ -179,7 +97,8 @@ def settings():
                                rutracker_u=conf.rutracker_user,
                                rutracker_p=conf.rutracker_password,
                                jpop_u=conf.jpopsuki_user,
-                               jpop_p=conf.jpopsuki_password)
+                               jpop_p=conf.jpopsuki_password,
+                               reg_enabled=conf.reg_enabled)
     else:
         try:
             qbit_url = request.form['q_url']
@@ -338,12 +257,19 @@ def run_automation():
 
 
 def pushtoListener(data):
-    print "ran"
+    print "ran_shedl"
     send_event("scheduled", json.dumps(data), channel='sched')
 
 
+def pushtoListenerHiVal(cur_u):
+    hival_u = User.query.filter_by(name=cur_u).first()
+    hival_u.historynum += 1
+    db.session.commit()
+    send_event("historynum", json.dumps(hival_u.historynum), channel='historynum')
+
+
 def pushtoListenerHistory(data):
-    print "ran"
+    print "ran_history"
     send_event("history", json.dumps(data), channel='history')
 
 
@@ -363,11 +289,12 @@ def download(name=None):
         q.put(result)
     else:
         q.put(result)
-        dlThread = threading.Thread(target=initDl, args=(q,)).start()
+        cur_u = g.user.name
+        dlThread = threading.Thread(target=initDl, args=(q, cur_u, )).start()
     return '', 204
 
 
-def initDl(q):
+def initDl(q, cur_u):
     while True:
         dlalbum = torrentdler.TorrentDl(
             conf.rutracker_user,
@@ -405,12 +332,15 @@ def initDl(q):
                     print "Updating status"
                     Album.query.get(exitingobj.id).status = rq_album.status
                     db.session.commit()
+                    with app.app_context():
+                        pushtoListenerHiVal(cur_u)
                 else:
                     db.session.add(rq_album)
                     db.session.commit()
                     data = ({"name": result, "status": rq_album.status})
                     with app.app_context():
                         pushtoListenerHistory(data)
+                        pushtoListenerHiVal(cur_u)
                 q.task_done()
             except:
                 traceback.print_exc()
@@ -426,6 +356,8 @@ def queue():
         album_history = OrderedDict()
         for i in reversed(xrange(len(wholedb))):
             album_history[wholedb[i].album_name] = wholedb[i].status
+        g.user.historynum = 0
+        db.session.commit()
         return render_template("status.html", album_history=album_history)
     if request.method == "DELETE":
         tobedeleted = request.form['alname']
@@ -492,14 +424,15 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
-
 @app.route('/reg', methods=['GET', 'POST'])
 def regacc():
+    if conf.reg_enabled == "0":
+        return '<h1>Registration is closed</h1>', 200
     if current_user.is_authenticated:
         return redirect(url_for("index"))
     form = Registration()
     if form.validate_on_submit():
-        user = User(name=form.name.data, password=form.password.data)
+        user = User(name=form.name.data, password=form.password.data, admin=False, historynum=0)
         db.session.add(user)
         db.session.commit()
         login_user(user, remember=True)
@@ -507,6 +440,109 @@ def regacc():
         return redirect(url_for("index"))
     return render_template("reg.html", form=form)
 
+
+@app.route('/lists/p4k')
+@login_required
+@cache.cached(timeout=86400)
+def p4k_listing():
+    ureq = urllib2.Request(r'http://pitchfork.com/reviews/albums', headers={'User-Agent': "asdf"})
+    site = urllib2.urlopen(ureq)
+    parser = etree.HTMLParser()
+    tree = etree.parse(site, parser)
+    p4k_reviews = []
+    rv_links = []
+    covers = []
+    genre = []
+    for i in xrange(1, 25):
+        try:
+            h1 = tree.xpath('//*[@id="reviews"]/div[2]/div/div[1]/div[1]/div/div/div[%d]/a/div[2]/ul/li' % (i))[0].text
+            h2 = tree.xpath('//*[@id="reviews"]/div[2]/div/div[1]/div[1]/div/div/div[%d]/a/div[2]/h2' % (i))[0].text
+            cover = \
+                tree.xpath('//*[@id="reviews"]/div[2]/div/div[1]/div[1]/div/div/div[%d]/a/div[1]/div/img//@src' % (i))[
+                    0]
+            reviewlink = tree.xpath('//*[@id="reviews"]/div[2]/div/div[1]/div/div/div/div[%d]/a//@href' % (i))[0]
+            try:
+                genres = tree.xpath('//*[@id="reviews"]/div[2]/div/div[1]/div[1]/div/div/div[%d]/div/ul[1]/li/a' % i)[
+                    0].text
+            except:
+                genres = "N/A"
+            appendable = '%s - %s' % (h1, h2)
+            p4k_reviews.append(appendable)
+            genre.append(genres)
+            rv_links.append("http://pitchfork.com" + reviewlink)
+            covers.append(str(cover))
+        except (TypeError):
+            pass
+    return render_template("p4k.html", p4k_reviews=p4k_reviews, covers=covers, genre=genre, rv_links=rv_links)
+
+
+@app.route('/lists')
+@login_required
+def list_landing():
+    return render_template("list.html")
+
+
+@app.route('/admin/<command>')
+@login_required
+def admin(command):
+    if current_user.admin is True:
+        if command == "shutdown":
+            print "shutting down"
+            os.system("killall -9 gunicorn")
+            return '', 201
+        if command == "reg":
+            if conf.reg_enabled == "0":
+                print "enabling registration"
+                conf.updateRegistration("1")
+                reload(conf)
+                return '', 201
+            else:
+                print "disabling registration"
+                conf.updateRegistration("0")
+                reload(conf)
+                return '', 201
+    else:
+        return '', 401
+
+
+@app.route('/lists/mnet/<page>')
+@login_required
+@cache.cached(timeout=86400)
+def list_mnet(page):
+    ureq = urllib2.Request(r'http://mwave.interest.me/kpop/new-album.m?page.nowPage=' + page,
+                           headers={'User-Agent': "asdf"})
+    site = urllib2.urlopen(ureq)
+    parser = etree.HTMLParser()
+    tree = etree.parse(site, parser)
+    mnet_lists = []
+    more_info = []
+    covers = []
+    genre = []
+    for i in xrange(1, 21):
+        try:
+            h1 = tree.xpath('//*[@id="content"]/div[1]/ul/li[%d]/dl/dd[1]/a' % (i))[0].text
+            h2 = tree.xpath('//*[@id="content"]/div[1]/ul/li[%d]/dl/dd[2]/a' % (i))[0].text
+            cover = \
+                tree.xpath('//*[@id="content"]/div[1]/ul/li[%d]/dl/dt/a/img//@src' % (i))[
+                    0]
+            moreinflink = tree.xpath('//*[@id="content"]/div[1]/ul/li[%d]/dl/dd[1]/a//@href' % (i))[0]
+            try:
+                genres = tree.xpath('//*[@id="content"]/div[1]/ul/li[%d]/dl/dd[4]//text()[2]' % i)[
+                    0]
+            except:
+                genres = "N/A"
+            if h2 is " ":
+                continue
+            else:
+                appendable = '%s - %s' % (h2, h1)
+                mnet_lists.append(appendable)
+                more_info.append('http://mwave.interest.me' + moreinflink)
+                genre.append(genres)
+                covers.append(str(cover))
+        except (TypeError):
+            pass
+    return render_template("mnet.html", mnet_lists=mnet_lists, covers=covers, genre=genre, page=int(page),
+                           more_info=more_info)
 
 @login_manager.user_loader
 def load_user(user_id):

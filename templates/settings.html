@@ -4,46 +4,104 @@
 
 {% block page_content %}
     <div class="container">
-    <div class="page-header">
-        <h1>Settings</h1>
+        <div class="page-header">
+            <h1>Settings</h1>
+            <ul class="nav nav-tabs centered">
+                <li class="active"><a href="#home" data-toggle="tab" aria-expanded="true">Downloader</a></li>
+                <li class=""><a href="#admin" data-toggle="tab" aria-expanded="false">Administrative</a></li>
+            </ul>
+        </div>
     </div>
-    </div>
-    <form action="/settings" method="post">
-    <div class="container">
-    <div  class="row">
-        <div class="col-lg-6">
-            <h3>General</h3>
-                <p>ruTracker user: <input class="form-control" name="ru_u" type="text" value="{{ rutracker_u }}"></p>
-                <p>ruTracker pw: <input class="form-control" name="ru_p" type="password" value="{{ rutracker_p }}"></p>
-                <p>jpopsuki user: <input class="form-control" name="j_u" type="text" value="{{ jpop_u }}"></p>
-                <p>jpopsuki pw: <input class="form-control" name="ju_p" type="password" value="{{ jpop_p }}"></p>
-                <p>
-                <div class="radio">
-                    <h3>Torrent client:</h3>
-                    <div class="form-group">
-                        Select: <select class="form-control" name="p_tc" id="tclient">
-                        {% if torrent_client == "qbittorrent" %}
-                            <option>qbittorrent</option>
-                            <option>transmission</option>
+    <div class="tab-content">
+        <div id="home" class="tab-pane fade in active">
+            <form action="/settings" method="post">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <h3>General</h3>
+                            <p>ruTracker user: <input class="form-control" name="ru_u" type="text"
+                                                      value="{{ rutracker_u }}"></p>
+                            <p>ruTracker pw: <input class="form-control" name="ru_p" type="password"
+                                                    value="{{ rutracker_p }}"></p>
+                            <p>jpopsuki user: <input class="form-control" name="j_u" type="text" value="{{ jpop_u }}">
+                            </p>
+                            <p>jpopsuki pw: <input class="form-control" name="ju_p" type="password"
+                                                   value="{{ jpop_p }}"></p>
+                            <p>
+                            <div class="radio">
+                                <h3>Torrent client:</h3>
+                                <div class="form-group">
+                                    Select: <select class="form-control" name="p_tc" id="tclient">
+                                    {% if torrent_client == "qbittorrent" %}
+                                        <option>qbittorrent</option>
+                                        <option>transmission</option>
+                                    {% else %}
+                                        <option>transmission</option>
+                                        <option>qbittorrent</option>
+                                    {% endif %}
+                                </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <h3>Client settings</h3>
+                            <p>Transmission url: <input class="form-control" placeholder="IP:PORT" name="t_url"
+                                                        type="text" value="{{ tranmission_url }}"></p>
+                            <p>Transmission user:<input class="form-control" name="tu_us" type="text"
+                                                        value="{{ transmission_u }}"></p>
+                            <p>Transmission pw: <input class="form-control" name="tu_pw" type="password"
+                                                       value="{{ transmission_p }}">
+                            </p>
+                            <p>Qbitorrent url: <input class="form-control" placeholder="IP:PORT" name="q_url"
+                                                      type="text" value="{{ qbitorrent_url }}"></p>
+                            <p>Qbitorrent user: <input class="form-control" name="q_us" type="text"
+                                                       value="{{ qbitorrent_u }}"></p>
+                            <p>Qbitorrent pw: <input class="form-control" name="q_pw" type="password"
+                                                     value="{{ qbitorrent_p }}"></p>
+                        </div>
+                    </div>
+                    <div class="col-lg-12 text-center form_gap"><input class="btn btn-default" id="submit" name="submit"
+                                                                       type="submit" value="Save"></div>
+                </div>
+            </form>
+        </div>
+        <div id="admin" class="tab-pane fade">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-6 col-sm-12">
+                        {% if reg_enabled == "1" %}
+                            <p id="d_reg" class="btn btn-success btn-lg btn-block">Disable registration</p>
                         {% else %}
-                            <option>transmission</option>
-                            <option>qbittorrent</option>
+                            <p id="d_reg" class="btn btn-success btn-lg btn-block">Enable registration</p>
                         {% endif %}
-                    </select>
+                    </div>
+                    <div class="col-lg-6 col-sm-12">
+                        <p id="s_serv" class="btn btn-danger btn-lg btn-block">Shutdown server</p>
                     </div>
                 </div>
-        </div>
-        <div class="col-lg-6">
-            <h3>Client settings</h3>
-            <p>Transmission url: <input class="form-control" placeholder="IP:PORT" name="t_url" type="text" value="{{ tranmission_url }}"></p>
-            <p>Transmission user:<input class="form-control" name="tu_us" type="text" value="{{ transmission_u }}"></p>
-            <p>Transmission pw: <input class="form-control" name="tu_pw" type="password" value="{{ transmission_p }}">
-            </p>
-            <p>Qbitorrent url: <input class="form-control" placeholder="IP:PORT" name="q_url" type="text" value="{{ qbitorrent_url }}"></p>
-            <p>Qbitorrent user: <input class="form-control" name="q_us" type="text" value="{{ qbitorrent_u }}"></p>
-            <p>Qbitorrent pw: <input class="form-control" name="q_pw" type="password" value="{{ qbitorrent_p }}"></p>
+            </div>
         </div>
     </div>
-    <div class="col-lg-12 text-center form_gap"><input class="btn btn-default" id="submit" name="submit" type="submit" value="Save"></div></div>
-    </form>
+
+    <div class="modal fade" id="adminmodal" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Error</h4>
+                </div>
+                <div class="modal-body">
+                    <p>You lack the privileges to execute this command</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+{% endblock %}
+{% block scripts %}
+    {{ super() }}
+    <script src="{{ url_for('.static', filename='settings.js') }}"></script>
 {% endblock %}

@@ -37,9 +37,14 @@
             </table>
         <div class="text-center">
         {% if page == 1 %}
-        <a href="/lists/mnet/{{ page + 1 }}">Next page</a>
+            <ul class="pager">
+        <li><a href="/lists/mnet/{{ page + 1 }}">Next page</a></li>
+            </ul>
         {% else %}
-        <a href="/lists/mnet/{{ page - 1 }}">Last page</a> | <a href="/lists/mnet/{{ page + 1 }}">Next page</a>
+            <ul class="pager">
+        <li><a href="/lists/mnet/{{ page - 1 }}">Last page</a></li>&nbsp;
+                <li><a href="/lists/mnet/{{ page + 1 }}">Next page</a></li>
+            </ul>
             {% endif %}
         </div>
     </div>

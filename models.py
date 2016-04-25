@@ -48,10 +48,14 @@ class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(24), unique=True)
     password = db.Column(db.String(256), unique=False)
+    admin = db.Column(db.Boolean, unique=False)
+    historynum = db.Column(db.Integer)
 
-    def __init__(self, name, password):
+    def __init__(self, name, password, admin, historynum):
         self.name = name
         self.set_password(password)
+        self.admin = admin
+        self.historynum = historynum
 
     def __repr__(self):
         return '<User %r>' % self.name

@@ -8,7 +8,7 @@ def setvars():
     global transmission_url, transmission_password, transmission_user, qbittorrent_url,\
         qbittorrent_password, qbittorrent_url, qbittorrent_user, use_fallback, torrent_client,\
         rutracker_user, rutracker_password, default_search_api, jpopsuki_user, jpopsuki_password, \
-        automation_status, automation_interval
+        automation_status, automation_interval, reg_enabled
     config.read('config.cfg')
     transmission_user = config.get("transmission", "user")
     transmission_password = config.get("transmission", "password")
@@ -25,6 +25,7 @@ def setvars():
     jpopsuki_password = config.get("general", "jpopsuki_password")
     automation_status = config.get("auto", "enable")
     automation_interval = config.get("auto", "check_int")
+    reg_enabled = config.get("general", "reg_enabled")
 
 if not os.path.exists('config.cfg'):
     print "• No configuration detected, generating config file"
@@ -44,6 +45,7 @@ if not os.path.exists('config.cfg'):
     config.set('general', 'rutracker_password', '')
     config.set('general', 'jpopsuki_user', '')
     config.set('general', 'jpopsuki_password', '')
+    config.set('general', 'reg_enabled', '1')
     config.add_section('auto')
     config.set('auto', 'enable', '0')
     config.set('auto', 'check_int', '24')
@@ -76,6 +78,11 @@ def updateConf(*args):
 def updateAutomation(*args):
     config.set('auto', 'enable', args[0])
     config.set('auto', 'check_int', args[1])
+    with open('config.cfg', 'wb') as configfile:
+        config.write(configfile)
+
+def updateRegistration(*args):
+    config.set('general', 'reg_enabled', args[0])
     with open('config.cfg', 'wb') as configfile:
         config.write(configfile)
 

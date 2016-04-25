@@ -4977,7 +4977,6 @@ a.label:focus {
   font-weight: bold;
   color: #ffffff;
   line-height: 1;
-  vertical-align: middle;
   white-space: nowrap;
   text-align: center;
   background-color: #464545;
@@ -7162,4 +7161,14 @@ a.list-group-item-danger.active:focus {
 .open > .dropdown-toggle.btn-track {
   background-color: #49515d;
   border-color: #262b36;
+}
+.nav-tabs.centered > li, .nav-pills.centered > li {
+    float:none;
+    display:inline-block;
+    *display:inline; /* ie7 fix */
+     zoom:1; /* hasLayout ie7 trigger */
+}
+
+.nav-tabs.centered, .nav-pills.centered {
+    text-align:center;
 }

@@ -19,14 +19,22 @@
                 <ul class="nav navbar-nav">
                     <li {% if active_page == "index" %}class="active"{% endif %}><a href="/"><span
                             class="glyphicon glyphicon-search"></span> Search</a></li>
-                    <li {% if active_page == "list" %}class="active"{% endif %}><a href="/lists"><span
-                            class="glyphicon glyphicon-list-alt"></span> Lists</a></li>
-                    <li {% if active_page == "status" %}class="active"{% endif %}><a href="/status"><span
-                            class="glyphicon glyphicon-book"></span> History</a>
-                    </li>
                     <li {% if active_page == "auto" %}class="active"{% endif %}><a
                             href="/auto"><span
                             class="glyphicon glyphicon-plane"></span> Automation</a>
+                    </li>
+                                    <li {% if active_page == "list" %}class="active"{% endif %}><a href="/lists"><span
+                            class="glyphicon glyphicon-list-alt"></span> Lists</a></li>
+                                    <li {% if active_page == "status" %}class="active"{% endif %}><a href="/status"><span
+                            class="glyphicon glyphicon-book"></span> History
+                                        {% if g.user.is_authenticated %}
+                                            {% if g.user.historynum > 0 %}
+                                        <span id="hi_num" class="badge">{{ g.user.historynum }}</span>
+                                        {% else %}
+                                                <span style="display: none" id="hi_num" class="badge">{{ g.user.historynum }}</span>
+                                                {% endif %}
+                                    {% endif %}
+                                    </a>
                     </li>
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
@@ -59,4 +67,8 @@
         {% endif %}
     </div>
     </div>
+{% endblock %}
+{% block scripts %}
+    {{ super() }}
+    <script src="{{ url_for('.static', filename='history_l.js') }}"></script>
 {% endblock %}

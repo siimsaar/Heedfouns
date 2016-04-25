@@ -46,9 +46,9 @@ class TorrentDl():
     def logIn(self):
         driver.get('http://login.rutracker.org/forum/login.php')
         username = driver.find_element_by_xpath(
-            r'//*[@id="login-form"]/table/tbody/tr[2]/td/div/table/tbody/tr[1]/td[2]/input')
+            r'//*[@id="login-form-full"]/table/tbody/tr[2]/td/div/table/tbody/tr[1]/td[2]/input')
         password = driver.find_element_by_xpath(
-            r'//*[@id="login-form"]/table/tbody/tr[2]/td/div/table/tbody/tr[2]/td[2]/input')
+            r'//*[@id="login-form-full"]/table/tbody/tr[2]/td/div/table/tbody/tr[2]/td[2]/input')
 
         username.send_keys(self.user_rutracker)
         password.send_keys(self.password_rutracker)
@@ -58,8 +58,8 @@ class TorrentDl():
             print "✗ Too many invalid logins, captcha found."
             self.tearDown()
         else:
-            driver.find_element_by_css_selector(
-                r'#login-form > table > tbody > tr:nth-child(2) > td > div > table > tbody > tr:nth-child(3) > td > input').click()
+            driver.find_element_by_xpath(
+                r'//*[@id="login-form-full"]/table/tbody/tr[2]/td/div/table/tbody/tr[4]/td/input').click()
         if driver.get_cookie("bb_data") is not None:
             print "✓ Successfully logged in, saving cookie"
             open("cookie.dat", 'w').write(str(driver.get_cookie("bb_data")))
