@@ -59,7 +59,7 @@
     <div class="row">
         <div class="col-lg-12 text-center quarter_margin">
         {% if g.user.is_authenticated %}
-        <p>Logged in as: {{ g.user.name }}</p>
+        <p id="username">Logged in as: {{ g.user.name }}</p>
             {% endif %}
         <p>Uptime: {{ g.time }} | version 0.003</p>
                 {% if g.user.is_authenticated %}

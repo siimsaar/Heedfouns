@@ -6,6 +6,7 @@ import threading
 import time
 import traceback
 import urllib2
+import uuid
 from urllib import quote_plus
 from collections import OrderedDict
 from datetime import datetime
@@ -53,7 +54,7 @@ from models import User, Album, TrackedArtists, QueueAlbum
 from forms import Login, Registration
 
 # MISC
-discg = discogs_client.Client # Discogs search API
+discg = discogs_client.Client  # Discogs search API
 q = Queue.Queue()  # FIFO
 starttime = datetime.now()  # UPTIME
 
@@ -69,17 +70,18 @@ def index():
     return render_template("index.html")
 
 
-@app.route('/api', methods=['GET', 'POST'])
+@app.route('/api', methods=['POST'])
 def apisel():
-    global api_s
-    if request.form['apiselec'] == "getactive":
-        try:
-            api_s
-        except:
-            api_s = conf.default_search_api
-        return api_s
-    api_s = request.form['apiselec']
-    return api_s
+    if request.form['setactive'] == "lastfm":
+        g.user.searchapi = "lastfm"
+        db.session.commit()
+        return '', 204
+    elif request.form['setactive'] == "discogs":
+        g.user.searchapi = "discogs"
+        db.session.commit()
+        return '', 204
+    return '', 400
+
 
 @app.route('/settings', methods=['GET', 'POST'])
 @login_required
@@ -138,11 +140,7 @@ def search():
 def search_results(message):
     srchquery = []
     covers = []
-    search_provider = None
-    try:
-        search_provider = api_s
-    except:
-        print "default search provider not set"
+    search_provider = g.user.searchapi
     try:
         if search_provider == "lastfm":
             lastfm_search(message, srchquery, covers)
@@ -261,11 +259,11 @@ def pushtoListener(data):
     send_event("scheduled", json.dumps(data), channel='sched')
 
 
-def pushtoListenerHiVal(cur_u):
+def pushtoListenerHiVal(cur_u, id):
     hival_u = User.query.filter_by(name=cur_u).first()
     hival_u.historynum += 1
     db.session.commit()
-    send_event("historynum", json.dumps(hival_u.historynum), channel='historynum')
+    send_event("historynum", json.dumps({"user": cur_u, "number": hival_u.historynum}), channel='historynum=' + id)
 
 
 def pushtoListenerHistory(data):
@@ -278,23 +276,25 @@ def pushtoListenerHistory(data):
 def download(name=None):
     try:
         result = request.form['alname']
+        sse_id = request.form['id_sse']
     except:
         try:
             result = name
         except:
-            print "download undefined"
+            print "download undefined or identifier missing"
             traceback.print_exc()
     time.sleep(1)
     if q.unfinished_tasks > 0:
-        q.put(result)
+        data = [result, g.user.name, sse_id]
+        q.put(data)
     else:
-        q.put(result)
-        cur_u = g.user.name
-        dlThread = threading.Thread(target=initDl, args=(q, cur_u, )).start()
+        data = [result, g.user.name, sse_id]
+        q.put(data)
+        dlThread = threading.Thread(target=initDl, args=(q,)).start()
     return '', 204
 
 
-def initDl(q, cur_u):
+def initDl(q):
     while True:
         dlalbum = torrentdler.TorrentDl(
             conf.rutracker_user,
@@ -307,8 +307,11 @@ def initDl(q, cur_u):
             qbittorrent_url=conf.qbittorrent_url,
             jpopsuki_user=conf.jpopsuki_user,
             jpopsuki_password=conf.jpopsuki_password)
-        result = q.get()
-        print result
+        data = q.get()
+        result = data[0]
+        user = data[1]
+        id = data[2]
+        print "USER: %s | ALBUM ADDED: %s" % (user, result)
         try:
             dlalbum.getCookies()
             dlalbum.getAlbums(result, client=conf.torrent_client)
@@ -333,14 +336,14 @@ def initDl(q, cur_u):
                     Album.query.get(exitingobj.id).status = rq_album.status
                     db.session.commit()
                     with app.app_context():
-                        pushtoListenerHiVal(cur_u)
+                        pushtoListenerHiVal(user, id)
                 else:
                     db.session.add(rq_album)
                     db.session.commit()
                     data = ({"name": result, "status": rq_album.status})
                     with app.app_context():
                         pushtoListenerHistory(data)
-                        pushtoListenerHiVal(cur_u)
+                        pushtoListenerHiVal(user, id)
                 q.task_done()
             except:
                 traceback.print_exc()
@@ -414,7 +417,9 @@ def login():
         if user is not None:
             if User.check_password(user, form.password.data):
                 login_user(user, remember=True)
-                return redirect(url_for("index"))
+                response = make_response(redirect(url_for("index")))
+                response.set_cookie('sse_channel_id', str(uuid.uuid4()))
+                return response
         flash("Invalid username or password", 'error')
     return render_template("login.html", form=form)
 
@@ -424,6 +429,7 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
+
 @app.route('/reg', methods=['GET', 'POST'])
 def regacc():
     if conf.reg_enabled == "0":
@@ -432,7 +438,8 @@ def regacc():
         return redirect(url_for("index"))
     form = Registration()
     if form.validate_on_submit():
-        user = User(name=form.name.data, password=form.password.data, admin=False, historynum=0)
+        user = User(name=form.name.data, password=form.password.data,
+                    admin=False, historynum=0, searchapi="lastfm")
         db.session.add(user)
         db.session.commit()
         login_user(user, remember=True)
@@ -454,7 +461,7 @@ def p4k_listing():
     covers = []
     genre = []
     for i in xrange(1, 25):
-        try:
+        try:  # ugly
             h1 = tree.xpath('//*[@id="reviews"]/div[2]/div/div[1]/div[1]/div/div/div[%d]/a/div[2]/ul/li' % (i))[0].text
             h2 = tree.xpath('//*[@id="reviews"]/div[2]/div/div[1]/div[1]/div/div/div[%d]/a/div[2]/h2' % (i))[0].text
             cover = \
@@ -519,7 +526,7 @@ def list_mnet(page):
     covers = []
     genre = []
     for i in xrange(1, 21):
-        try:
+        try:  # ugly
             h1 = tree.xpath('//*[@id="content"]/div[1]/ul/li[%d]/dl/dd[1]/a' % (i))[0].text
             h2 = tree.xpath('//*[@id="content"]/div[1]/ul/li[%d]/dl/dd[2]/a' % (i))[0].text
             cover = \
@@ -543,6 +550,7 @@ def list_mnet(page):
             pass
     return render_template("mnet.html", mnet_lists=mnet_lists, covers=covers, genre=genre, page=int(page),
                            more_info=more_info)
+
 
 @login_manager.user_loader
 def load_user(user_id):

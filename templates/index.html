@@ -25,9 +25,15 @@
             </div>
             <div class="col-md-6 text-center quarter_px_margin">
                 <h4 class="text-center">Search API</h4>
-                <button type="button" id="discogs" name="apibttn" value="discogs" class="btn btn-primary">Discogs
+                {% if g.user.searchapi == "discogs" %}
+                <button type="button" id="discogs" class="btn btn-primary active">Discogs
                 </button>
-                <button type="button" id="lastfm" name="apibttn" value="lastfm" class="btn btn-primary">LastFM</button>
+                <button type="button" id="lastfm" class="btn btn-primary">LastFM</button>
+                {% else %}
+                <button type="button" id="discogs" class="btn btn-primary">Discogs
+                </button>
+                <button type="button" id="lastfm" class="btn btn-primary active">LastFM</button>
+                {% endif %}
             </div>
         </div>
     </form>

@@ -15,7 +15,7 @@ function dlbttns() {
         url: '/dl',
         type: "POST",
         success: $(this).prop('disabled', 'true').text('Added'),
-        data: {alname: val}
+        data: {alname: val, id_sse: document.cookie.split(";")[0].split("=")[1]}
     });
 }
 

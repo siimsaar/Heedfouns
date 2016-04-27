@@ -50,12 +50,14 @@ class User(db.Model, UserMixin):
     password = db.Column(db.String(256), unique=False)
     admin = db.Column(db.Boolean, unique=False)
     historynum = db.Column(db.Integer)
+    searchapi = db.Column(db.Enum('lastfm', 'discogs'), unique=False)
 
-    def __init__(self, name, password, admin, historynum):
+    def __init__(self, name, password, admin, historynum, searchapi):
         self.name = name
         self.set_password(password)
         self.admin = admin
         self.historynum = historynum
+        self.searchapi = searchapi
 
     def __repr__(self):
         return '<User %r>' % self.name
