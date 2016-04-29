@@ -104,7 +104,7 @@ function search() {
 }
 
 
-window.addEventListener("load", function () {
+window.addEventListener("DOMContentLoaded", function () {
     getDlBttns();
     getInfoBttns();
     search();

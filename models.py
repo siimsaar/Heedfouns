@@ -2,8 +2,8 @@ import app
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 
-
 db = app.db
+
 
 class Album(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -44,6 +44,25 @@ class QueueAlbum(db.Model):
         return '<PlannedA %r>' % self.album_name
 
 
+class Search(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    search_term = db.Column(db.String(60))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+    def __repr__(self):
+        return '<SearchT %r>' % self.search_term
+
+
+class Suggestion(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    suggestion = db.Column(db.String(60))
+    cover_url = db.Column(db.String(128))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+    def __repr__(self):
+        return '<Sugg %r>' % self.suggestion
+
+
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(24), unique=True)
@@ -51,13 +70,17 @@ class User(db.Model, UserMixin):
     admin = db.Column(db.Boolean, unique=False)
     historynum = db.Column(db.Integer)
     searchapi = db.Column(db.Enum('lastfm', 'discogs'), unique=False)
+    searches_num = db.Column(db.Integer)
+    search_str = db.relationship('Search', backref='user', lazy='dynamic')
+    suggestions = db.relationship('Suggestion', backref='user', lazy='dynamic')
 
-    def __init__(self, name, password, admin, historynum, searchapi):
+    def __init__(self, name, password, admin, historynum, searchapi, search_num):
         self.name = name
         self.set_password(password)
         self.admin = admin
         self.historynum = historynum
         self.searchapi = searchapi
+        self.searches_num = search_num
 
     def __repr__(self):
         return '<User %r>' % self.name

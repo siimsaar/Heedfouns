@@ -50,13 +50,16 @@ login_manager.init_app(app)
 db = SQLAlchemy(app)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'history.db')
-from models import User, Album, TrackedArtists, QueueAlbum
+from models import User, Album, TrackedArtists, QueueAlbum, Search, Suggestion
 from forms import Login, Registration
 
 # MISC
 discg = discogs_client.Client  # Discogs search API
-q = Queue.Queue()  # FIFO
+q = Queue.Queue()  # FIFO with data for worker thread
+dl_requests = 0  # DL requests made
 starttime = datetime.now()  # UPTIME
+API_KEY = "d5e9e669b3a12715c860607e3ddce016" # LASTFM KEY
+USER_TOKEN = 'LfYzUfQpWhiJNnmtVQZJKuTVipDPebjIubijkzoT' # DISCOGS TOKEN
 
 # CHECKS
 a_running = 0
@@ -67,7 +70,8 @@ t_running = 0
 @app.route('/index', methods=['GET', 'POST'])
 @login_required
 def index():
-    return render_template("index.html")
+    suggestion_object = g.user.suggestions.all()
+    return render_template("index.html", sug_o=suggestion_object)
 
 
 @app.route('/api', methods=['POST'])
@@ -149,11 +153,15 @@ def search_results(message):
     except (IndexError, pylast.WSError):
         flash("Couldn't find any albums", 'error')
         return render_template("index.html")
+    db.session.add(Search(search_term=message, user=g.user))
+    g.user.searches_num += 1
+    db.session.commit()
     return render_template("search.html", srchquery=srchquery)
 
 
 def discogs_search(message, srchquery):
-    discg = discogs_client.Client('app/0.1', user_token='LfYzUfQpWhiJNnmtVQZJKuTVipDPebjIubijkzoT')
+    global USER_TOKEN
+    discg = discogs_client.Client('app/0.1', user_token=USER_TOKEN)
     db_search = discg.search(string.capwords(message), type='artist')[0].releases.page(1)
     srchquery.append(string.capwords(message) + " - Discography")
     for i in xrange(0, len(db_search)):
@@ -161,7 +169,7 @@ def discogs_search(message, srchquery):
 
 
 def lastfm_search(message, srchquery, covers):
-    API_KEY = "d5e9e669b3a12715c860607e3ddce016"
+    global API_KEY
     lfm = pylast.LastFMNetwork(api_key=API_KEY)
     artist = lfm.get_artist(message).get_top_albums(limit=25)
     for i in artist:
@@ -277,17 +285,19 @@ def download(name=None):
     try:
         result = request.form['alname']
         sse_id = request.form['id_sse']
+        global dl_requests
     except:
         try:
             result = name
         except:
             print "download undefined or identifier missing"
             traceback.print_exc()
-    time.sleep(1)
-    if q.unfinished_tasks > 0:
+    if dl_requests > 0:
+        dl_requests += 1
         data = [result, g.user.name, sse_id]
         q.put(data)
     else:
+        dl_requests += 1
         data = [result, g.user.name, sse_id]
         q.put(data)
         dlThread = threading.Thread(target=initDl, args=(q,)).start()
@@ -345,6 +355,8 @@ def initDl(q):
                         pushtoListenerHistory(data)
                         pushtoListenerHiVal(user, id)
                 q.task_done()
+                global dl_requests
+                dl_requests -= 1
             except:
                 traceback.print_exc()
                 db.session.rollback()
@@ -439,7 +451,7 @@ def regacc():
     form = Registration()
     if form.validate_on_submit():
         user = User(name=form.name.data, password=form.password.data,
-                    admin=False, historynum=0, searchapi="lastfm")
+                    admin=False, historynum=0, searchapi="lastfm", search_num=0)
         db.session.add(user)
         db.session.commit()
         login_user(user, remember=True)

@@ -7,6 +7,23 @@ import urllib2
 from bs4 import BeautifulSoup
 
 
+def generateSuggestions():
+    print "running"
+    users = app.User.query.all()
+    for user in users:
+        if user.searches_num >= 3:
+            print user.name
+            user_searches = user.search_str.all()
+            app.Suggestion.query.filter_by(user_id=user.id).delete()
+            for i in reversed(xrange(len(user_searches)-3, len(user_searches))):
+                lfm = app.pylast.LastFMNetwork(api_key=app.API_KEY)
+                s_similar = lfm.get_artist(user_searches[i].search_term).get_similar(limit=3)
+                for j in s_similar:
+                    s_cover = lfm.get_artist(j[0]).get_cover_image()
+                    app.db.session.add(app.Suggestion(suggestion=str(j[0]), cover_url=str(s_cover),  user=user))
+    app.db.session.commit()
+
+
 def get_upcoming_albums_from_metacritic():
     ureq = urllib2.Request(r'http://www.metacritic.com/browse/albums/release-date/coming-soon/date',
                            headers={
@@ -87,4 +104,5 @@ l_a_check = "Never"
 sched = GeventScheduler()
 sched.add_job(look_for_artist, 'interval', id="auto_A", minutes=int(app.conf.automation_interval) * 60)
 sched.add_job(look_for_torrents, 'interval', id="auto_T", minutes=int(app.conf.automation_interval) * 60)
+sched.add_job(generateSuggestions, 'interval', id="auto_S", seconds=5)
 sched.start()

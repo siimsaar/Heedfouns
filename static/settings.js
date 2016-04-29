@@ -1,6 +1,6 @@
 'use strict';
 
-window.addEventListener('load', function () {
+window.addEventListener('DOMContentLoaded', function () {
 $("#s_serv").click(function () {
     jQuery.get("/admin/shutdown").done(function () {
 

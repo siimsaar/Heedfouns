@@ -11,7 +11,7 @@ function noEmptySearch() {
     });
 }
 
-window.addEventListener("load", function () {
+window.addEventListener("DOMContentLoaded", function () {
     $('#discogs').click(function () {
         $.ajax({
             url: './api',

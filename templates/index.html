@@ -37,6 +37,13 @@
             </div>
         </div>
     </form>
+            <div class="container">
+            <div class="col-md-6">
+                {% for i in sug_o%}
+                    {% set row = loop %}
+    <p>{{ i.suggestion }}</p>
+    {% endfor %}
+    </div></div>
 {% endblock %}
 {% block scripts %}
     {{ super() }}
