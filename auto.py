@@ -8,20 +8,38 @@ from bs4 import BeautifulSoup
 
 
 def generateSuggestions():
-    print "running"
     users = app.User.query.all()
     for user in users:
         if user.searches_num >= 3:
-            print user.name
+            sugg_list = []
+            print "Updating suggestions for", user.name
             user_searches = user.search_str.all()
             app.Suggestion.query.filter_by(user_id=user.id).delete()
-            for i in reversed(xrange(len(user_searches)-3, len(user_searches))):
+            for i in reversed(xrange(len(user_searches) - 3, len(user_searches))):
                 lfm = app.pylast.LastFMNetwork(api_key=app.API_KEY)
-                s_similar = lfm.get_artist(user_searches[i].search_term).get_similar(limit=3)
-                for j in s_similar:
-                    s_cover = lfm.get_artist(j[0]).get_cover_image()
-                    app.db.session.add(app.Suggestion(suggestion=str(j[0]), cover_url=str(s_cover),  user=user))
-    app.db.session.commit()
+                s_similar = lfm.get_artist(user_searches[i].search_term).get_similar()
+                sugg_list = checkExistance(s_similar, sugg_list, 0, 0)
+                rsug_list = sugg_list[-3:]
+                print rsug_list
+                for j in rsug_list:
+                    s_cover = lfm.get_artist(j).get_cover_image()
+                    app.db.session.add(app.Suggestion(suggestion=unicode(j), cover_url=unicode(s_cover), user=user))
+    try:
+        app.db.session.commit()
+    except:
+        app.traceback.print_exc()
+
+
+def checkExistance(data, s_list, n, num_added):
+    if unicode(data[n][0]) in s_list:
+        return checkExistance(data, s_list, n + 1, num_added)
+    else:
+        s_list.append(unicode(data[n][0]))
+        num_added += 1
+        if num_added == 3:
+            return s_list
+        else:
+            return checkExistance(data, s_list, n + 1, num_added)
 
 
 def get_upcoming_albums_from_metacritic():
@@ -104,5 +122,5 @@ l_a_check = "Never"
 sched = GeventScheduler()
 sched.add_job(look_for_artist, 'interval', id="auto_A", minutes=int(app.conf.automation_interval) * 60)
 sched.add_job(look_for_torrents, 'interval', id="auto_T", minutes=int(app.conf.automation_interval) * 60)
-sched.add_job(generateSuggestions, 'interval', id="auto_S", seconds=5)
+sched.add_job(generateSuggestions, 'interval', id="auto_S", seconds=6200)
 sched.start()

@@ -1147,8 +1147,6 @@ img {
   padding: 2px;
   line-height: 1.42857143;
   background-color: #222222;
-  border: 1px solid #464545;
-  border-radius: 4px;
   -webkit-transition: all 0.2s ease-in-out;
   -o-transition: all 0.2s ease-in-out;
   transition: all 0.2s ease-in-out;
@@ -1158,6 +1156,7 @@ img {
 }
 .img-circle {
   border-radius: 50%;
+  box-shadow: 10px 10px 34px 0px rgba(0,0,0,0.75);
 }
 hr {
   margin-top: 21px;
@@ -5063,8 +5062,6 @@ a.badge:focus {
   margin-bottom: 21px;
   line-height: 1.42857143;
   background-color: #222222;
-  border: 1px solid #464545;
-  border-radius: 4px;
   -webkit-transition: border 0.2s ease-in-out;
   -o-transition: border 0.2s ease-in-out;
   transition: border 0.2s ease-in-out;
@@ -7101,6 +7098,9 @@ a.list-group-item-danger.active:focus {
 }
 .quarter_margin {
  margin-top: 15%;
+}
+.threeper_margin {
+ margin-top: 3%;
 }
 .auto_pic_align {
   margin-top: -5px;

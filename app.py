@@ -509,6 +509,9 @@ def admin(command):
             print "shutting down"
             os.system("killall -9 gunicorn")
             return '', 201
+        if command == "sugg":
+            auto.generateSuggestions()
+            return '', 201
         if command == "reg":
             if conf.reg_enabled == "0":
                 print "enabling registration"

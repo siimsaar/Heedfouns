@@ -10,6 +10,7 @@
     </div>
     <form action="{{ url_for('search') }}" id="index_search" method="post">
         <div class="container">
+                        <div class="row">
             <div class="col-md-6">
                 <h3>Enter an artist's name:</h3>
                 <div id="custom-search-input">
@@ -36,14 +37,23 @@
                 {% endif %}
             </div>
         </div>
+        </div>
     </form>
-            <div class="container">
-            <div class="col-md-6">
+            <div class="container threeper_margin">
+            <h4 class="text-center">Suggestions based on your searches</h4>
+            <br>
                 {% for i in sug_o%}
                     {% set row = loop %}
-    <p>{{ i.suggestion }}</p>
+                    <div class="col-md-4">
+    <div class="thumbnail">
+      <img class="img-circle" src="{{ i.cover_url }}" style="height: 9em; width: 9em" alt="...">
+      <div class="caption text-center">
+        <a style="font-size: 1.3em" href="/results/{{ i.suggestion }}">{{ i.suggestion }}</a>
+      </div>
+    </div>
+                    </div>
     {% endfor %}
-    </div></div>
+    </div>
 {% endblock %}
 {% block scripts %}
     {{ super() }}
