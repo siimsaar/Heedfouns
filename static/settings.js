@@ -2,13 +2,14 @@
 
 window.addEventListener('DOMContentLoaded', function () {
     $("#recalc").click(function () {
+        var _this = $(this);
         $(this).text("Generating...");
         $(this).prop('disabled', 'true');
         jQuery.get("/admin/sugg").done(function () {
-            $(this).text("Generate again");
-            $(this).prop('disabled', 'false')
+            $(_this).text("Generate again");
+            $(_this).removeAttr('disabled');
         }).fail(function () {
-            $(this).text("Generate suggestions");
+            $(this).text("Regenerate suggestions for all users");
             $(this).prop('disabled', 'false');
             $("#adminmodal").modal('show');
         });
@@ -22,7 +23,7 @@ window.addEventListener('DOMContentLoaded', function () {
     });
     $("#d_reg").click(function () {
         jQuery.get("/admin/reg").done(function () {
-            var _this = $("#d_reg");
+            var _this = $(this);
             if ($(_this).text() === "Disable registration") {
                 $(_this).text("Enable registration");
             } else {
@@ -30,6 +31,6 @@ window.addEventListener('DOMContentLoaded', function () {
             }
         }).fail(function () {
             $("#adminmodal").modal('show');
-        })
-    })
+        });
+    });
 });

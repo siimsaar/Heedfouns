@@ -4,10 +4,12 @@ from apscheduler.schedulers.gevent import GeventScheduler
 import logging
 # from models import *
 import urllib2
+from urllib import quote_plus
 from bs4 import BeautifulSoup
 
-
+# 30 lines longer 20% faster!
 def generateSuggestions():
+    query_s = app.datetime.now()
     users = app.User.query.all()
     for user in users:
         if user.searches_num >= 3:
@@ -16,25 +18,40 @@ def generateSuggestions():
             user_searches = user.search_str.all()
             app.Suggestion.query.filter_by(user_id=user.id).delete()
             for i in reversed(xrange(len(user_searches) - 3, len(user_searches))):
-                lfm = app.pylast.LastFMNetwork(api_key=app.API_KEY)
-                s_similar = lfm.get_artist(user_searches[i].search_term).get_similar()
-                sugg_list = checkExistance(s_similar, sugg_list, 0, 0)
+                artist_url = (
+                "http://ws.audioscrobbler.com/2.0/?method=artist.getsimilar&artist=%s&api_key=%s&format=json" % (
+                    quote_plus(user_searches[i].search_term.encode('utf-8')), app.API_KEY))
+                artist = urllib2.urlopen(artist_url)
+                data = app.json.load(artist)
+                s_similar = []
+                for similar in data['similarartists']['artist']:
+                    s_similar.append(similar['name'])
+                try:
+                    sugg_list = checkExistance(s_similar, sugg_list, 0, 0)
+                except:
+                    continue
                 rsug_list = sugg_list[-3:]
                 print rsug_list
                 for j in rsug_list:
-                    s_cover = lfm.get_artist(j).get_cover_image()
+                    artist_cover_url = (
+                        "http://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist=%s&api_key=%s&format=json" % (
+                            quote_plus(j.encode('utf-8')), app.API_KEY))
+                    artist_cover_data = urllib2.urlopen(artist_cover_url)
+                    cover_data = app.json.load(artist_cover_data)
+                    s_cover = cover_data['artist']['image'][3]['#text']
                     app.db.session.add(app.Suggestion(suggestion=unicode(j), cover_url=unicode(s_cover), user=user))
     try:
         app.db.session.commit()
+        print "Updated all suggestions in", app.datetime.now() - query_s
     except:
         app.traceback.print_exc()
 
 
 def checkExistance(data, s_list, n, num_added):
-    if unicode(data[n][0]) in s_list:
+    if unicode(data[n]) in s_list:
         return checkExistance(data, s_list, n + 1, num_added)
     else:
-        s_list.append(unicode(data[n][0]))
+        s_list.append(unicode(data[n]))
         num_added += 1
         if num_added == 3:
             return s_list
@@ -122,5 +139,5 @@ l_a_check = "Never"
 sched = GeventScheduler()
 sched.add_job(look_for_artist, 'interval', id="auto_A", minutes=int(app.conf.automation_interval) * 60)
 sched.add_job(look_for_torrents, 'interval', id="auto_T", minutes=int(app.conf.automation_interval) * 60)
-sched.add_job(generateSuggestions, 'interval', id="auto_S", seconds=6200)
+sched.add_job(app.threading.Thread(target=generateSuggestions).start, 'interval', id="auto_S", seconds=6200)
 sched.start()

@@ -68,17 +68,17 @@
         <div id="admin" class="tab-pane fade">
             <div class="container">
                 <div class="row">
-                    <div class="col-lg-6 col-sm-12">
-                    <p id="recalc" class="btn btn-primary btn-lg btn-block">Generate suggestions</p>
+                    <div class="col-lg-6 col-sm-6 col-xs-12">
+                    <button id="recalc" class="btn btn-primary btn-lg btn-block">Regenerate suggestions for all users</button>
                         {% if reg_enabled == "1" %}
-                            <p id="d_reg" class="btn btn-success btn-lg btn-block">Disable registration</p>
+                            <button id="d_reg" class="btn btn-success btn-lg btn-block">Disable registration</button>
                         {% else %}
-                            <p id="d_reg" class="btn btn-success btn-lg btn-block">Enable registration</p>
+                            <button id="d_reg" class="btn btn-success btn-lg btn-block">Enable registration</button>
                         {% endif %}
                     </div>
-                    <div class="col-lg-6 col-sm-12">
-                        <p id="s_serv" class="btn btn-danger btn-lg btn-block">Shutdown server</p>
-                        <p id="s_serv" class="btn btn-warning btn-lg btn-block">Im a placeholder</p>
+                    <div class="col-lg-6 col-sm-6 col-xs-12">
+                        <button id="s_serv" class="btn btn-danger btn-lg btn-block">Shutdown server</button>
+                        <button id="d_dler" class="btn btn-warning btn-lg btn-block">Disable downloader</button>
                     </div>
                 </div>
             </div>

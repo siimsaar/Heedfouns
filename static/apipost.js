@@ -1,12 +1,10 @@
-/* jshint -W097 */
-/* jshint -W040 */
 'use strict';
 
 function noEmptySearch() {
     $('#index_search').submit(function (e) {
         if ($("#src_box").val() === "") {
             e.preventDefault();
-            $('#nav_bar').after('<div class="container"><div class="row"><div class="alert alert-warning"><button type="button" class="close" data-dismiss="alert">&times;</button>Empty search, enter an artist!</div></div></div>')
+            $('#nav_bar').after('<div class="container"><div class="row"><div class="alert alert-warning"><button type="button" class="close" data-dismiss="alert">&times;</button>Empty search, enter an artist!</div></div></div>');
         }
     });
 }

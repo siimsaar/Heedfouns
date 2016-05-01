@@ -1,5 +1,3 @@
-/* jshint -W097 */
-/* jshint -W040 */
 'use strict';
 
 function enableButton() {

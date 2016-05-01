@@ -1156,6 +1156,10 @@ img {
 }
 .img-circle {
   border-radius: 50%;
+  border-width: 2px;
+  object-fit: cover;
+  border-color: #217dbb;
+  border-style: solid;
   box-shadow: 10px 10px 34px 0px rgba(0,0,0,0.75);
 }
 hr {
@@ -2569,8 +2573,8 @@ output {
   padding: 10px 15px;
   font-size: 15px;
   line-height: 1.42857143;
-  color: #464545;
-  background-color: #ffffff;
+  color: #FFF;
+  background-color: #383838;
   background-image: none;
   border: 1px solid #f1f1f1;
   border-radius: 4px;

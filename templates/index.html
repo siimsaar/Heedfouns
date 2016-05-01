@@ -9,11 +9,11 @@
     </div>
     </div>
     <form action="{{ url_for('search') }}" id="index_search" method="post">
-        <div class="container">
+        <div class="container center-block">
                         <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-12">
                 <h3>Enter an artist's name:</h3>
-                <div id="custom-search-input">
+                <div class="custom-search-input">
                     <div class="input-group col-md-12">
                         <input type="text" title="search" id="src_box" name="search_term" class="form-control input-md">
                     <span class="input-group-btn">
@@ -24,7 +24,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-6 text-center quarter_px_margin">
+            <div class="col-md-12 text-center quarter_px_margin">
                 <h4 class="text-center">Search API</h4>
                 {% if g.user.searchapi == "discogs" %}
                 <button type="button" id="discogs" class="btn btn-primary active">Discogs
@@ -39,21 +39,27 @@
         </div>
         </div>
     </form>
+    {% if sug_o|length != 0 %}
             <div class="container threeper_margin">
-            <h4 class="text-center">Suggestions based on your searches</h4>
+            <div class="row">
+            <h4 class="text-center">Suggestions based on your recent searches</h4>
             <br>
                 {% for i in sug_o%}
                     {% set row = loop %}
-                    <div class="col-md-4">
+                    <div class="col-md-4 col-sm-6">
     <div class="thumbnail">
-      <img class="img-circle" src="{{ i.cover_url }}" style="height: 9em; width: 9em" alt="...">
+        {% if i.cover_url != "None" %}
+      <a href="/results/{{ i.suggestion.replace(" ", "%20")  }}"><img class="img-circle" src="{{ i.cover_url }}" style="height: 9em; width: 9em" alt="img"></a>
+        {% else %}
+        <a href="/results/{{ i.suggestion.replace(" ", "%20")  }}"><img class="img-circle" src="/static/100.png" style="height: 9em; width: 9em" alt="img"></a>
+        {% endif %}
       <div class="caption text-center">
-        <a style="font-size: 1.3em" href="/results/{{ i.suggestion }}">{{ i.suggestion }}</a>
+        <a style="font-size: 1.3em" href="/results/{{ i.suggestion.replace(" ", "%20") }}">{{ i.suggestion }}</a>
       </div>
-    </div>
-                    </div>
+    </div></div>
     {% endfor %}
-    </div>
+            </div></div>
+    {% endif %}
 {% endblock %}
 {% block scripts %}
     {{ super() }}

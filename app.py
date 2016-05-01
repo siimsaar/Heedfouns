@@ -75,6 +75,7 @@ def index():
 
 
 @app.route('/api', methods=['POST'])
+@login_required
 def apisel():
     if request.form['setactive'] == "lastfm":
         g.user.searchapi = "lastfm"
@@ -85,6 +86,11 @@ def apisel():
         db.session.commit()
         return '', 204
     return '', 400
+
+@app.route('/refresh', methods=['POST'])
+@login_required
+def relsug():
+    sse_id = request.form['id_sse']
 
 
 @app.route('/settings', methods=['GET', 'POST'])
@@ -132,6 +138,7 @@ def settings():
 @login_required
 def search():
     message = request.form['search_term'].encode('utf-8')
+    suggestion_object = g.user.suggestions.all()
     if len(str(message)) <= 0:
         print "empty search"
         flash("Empty search, enter an artist!")
@@ -152,7 +159,7 @@ def search_results(message):
             discogs_search(message, srchquery)
     except (IndexError, pylast.WSError):
         flash("Couldn't find any albums", 'error')
-        return render_template("index.html")
+        return redirect(url_for('index'))
     db.session.add(Search(search_term=message, user=g.user))
     g.user.searches_num += 1
     db.session.commit()
@@ -393,7 +400,7 @@ def queue():
 @app.route('/more_info/<artist>/<album>', methods=['GET', 'POST'])
 @login_required
 def m_info(artist, album):
-    API_KEY = "d5e9e669b3a12715c860607e3ddce016"
+    global API_KEY
     tag_l = []
     trak_l = []
     similar_l = []
