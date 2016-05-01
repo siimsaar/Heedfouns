@@ -23,7 +23,7 @@ window.addEventListener('DOMContentLoaded', function () {
     });
     $("#d_reg").click(function () {
         jQuery.get("/admin/reg").done(function () {
-            var _this = $(this);
+            var _this = $("#d_reg");
             if ($(_this).text() === "Disable registration") {
                 $(_this).text("Enable registration");
             } else {

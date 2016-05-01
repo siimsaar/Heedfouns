@@ -138,7 +138,6 @@ def settings():
 @login_required
 def search():
     message = request.form['search_term'].encode('utf-8')
-    suggestion_object = g.user.suggestions.all()
     if len(str(message)) <= 0:
         print "empty search"
         flash("Empty search, enter an artist!")
@@ -167,7 +166,6 @@ def search_results(message):
 
 
 def discogs_search(message, srchquery):
-    global USER_TOKEN
     discg = discogs_client.Client('app/0.1', user_token=USER_TOKEN)
     db_search = discg.search(string.capwords(message), type='artist')[0].releases.page(1)
     srchquery.append(string.capwords(message) + " - Discography")
@@ -176,7 +174,6 @@ def discogs_search(message, srchquery):
 
 
 def lastfm_search(message, srchquery, covers):
-    global API_KEY
     lfm = pylast.LastFMNetwork(api_key=API_KEY)
     artist = lfm.get_artist(message).get_top_albums(limit=25)
     for i in artist:

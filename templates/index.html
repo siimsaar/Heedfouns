@@ -48,7 +48,7 @@
                     {% set row = loop %}
                     <div class="col-md-4 col-sm-6">
     <div class="thumbnail">
-        {% if i.cover_url != "None" %}
+        {% if i.cover_url != "" %}
       <a href="/results/{{ i.suggestion.replace(" ", "%20")  }}"><img class="img-circle" src="{{ i.cover_url }}" style="height: 9em; width: 9em" alt="img"></a>
         {% else %}
         <a href="/results/{{ i.suggestion.replace(" ", "%20")  }}"><img class="img-circle" src="/static/100.png" style="height: 9em; width: 9em" alt="img"></a>

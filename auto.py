@@ -7,6 +7,9 @@ import urllib2
 from urllib import quote_plus
 from bs4 import BeautifulSoup
 
+from gevent import monkey
+monkey.patch_all()
+
 # 30 lines longer 20% faster!
 def generateSuggestions():
     query_s = app.datetime.now()
@@ -27,7 +30,7 @@ def generateSuggestions():
                 for similar in data['similarartists']['artist']:
                     s_similar.append(similar['name'])
                 try:
-                    sugg_list = checkExistance(s_similar, sugg_list, 0, 0)
+                    sugg_list = check_existence(s_similar, sugg_list, 0, 0)
                 except:
                     continue
                 rsug_list = sugg_list[-3:]
@@ -47,16 +50,16 @@ def generateSuggestions():
         app.traceback.print_exc()
 
 
-def checkExistance(data, s_list, n, num_added):
+def check_existence(data, s_list, n, num_added):
     if unicode(data[n]) in s_list:
-        return checkExistance(data, s_list, n + 1, num_added)
+        return check_existence(data, s_list, n + 1, num_added)
     else:
         s_list.append(unicode(data[n]))
         num_added += 1
         if num_added == 3:
             return s_list
         else:
-            return checkExistance(data, s_list, n + 1, num_added)
+            return check_existence(data, s_list, n + 1, num_added)
 
 
 def get_upcoming_albums_from_metacritic():
@@ -139,5 +142,5 @@ l_a_check = "Never"
 sched = GeventScheduler()
 sched.add_job(look_for_artist, 'interval', id="auto_A", minutes=int(app.conf.automation_interval) * 60)
 sched.add_job(look_for_torrents, 'interval', id="auto_T", minutes=int(app.conf.automation_interval) * 60)
-sched.add_job(app.threading.Thread(target=generateSuggestions).start, 'interval', id="auto_S", seconds=6200)
+sched.add_job(generateSuggestions, 'interval', id="auto_S", seconds=6200)
 sched.start()
