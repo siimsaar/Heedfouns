@@ -12,13 +12,13 @@ function noEmptySearch() {
 window.addEventListener("DOMContentLoaded", function () {
     $("#refresh").click(function () {
         var spinner = $(this).children();
-            $(spinner).attr('class', 'fa fa-refresh fa-spin');
+            $(spinner).attr('class', 'fa fa-refresh fa-spin fa-2x');
             $.get("./refresh").done(function (data) {
                 $("#suggestion_block").html(data);
             }).fail(function () {
                 $("#refreshmodal").modal('show');
             }).always(function () {
-                $(spinner).attr('class', 'fa fa-refresh');
+                $(spinner).attr('class', 'fa fa-refresh fa-2x');
             });
     });
     $('#discogs').click(function () {

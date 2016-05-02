@@ -33,4 +33,16 @@ window.addEventListener('DOMContentLoaded', function () {
             $("#adminmodal").modal('show');
         });
     });
+        $("#s_hid").click(function () {
+        jQuery.get("/admin/shid").done(function () {
+            var _this = $("#s_hid");
+            if ($(_this).text() === "Only allow admins see/change settings") {
+                $(_this).text("Allow everyone see/change settings");
+            } else {
+                $(_this).text("Only allow admins see/change settings");
+            }
+        }).fail(function () {
+            $("#adminmodal").modal('show');
+        });
+    });
 });

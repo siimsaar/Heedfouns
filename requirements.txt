@@ -8,7 +8,6 @@ Flask_SQLAlchemy == 2.1
 Flask_WTF == 0.12
 lxml == 3.4.4
 pylast == 1.5.1
-pytorrentz == 0.0.3
 python_qbittorrent == 0.1.5
 requests == 2.9.1
 retry == 0.9.1
@@ -18,4 +17,3 @@ Werkzeug == 0.11.4
 WTForms == 2.1
 beautifulsoup4 == 4.4.1
 qbittorrent == 0.1.6
-sse == 1.2

@@ -102,42 +102,47 @@ def relsug():
 @app.route('/settings', methods=['GET', 'POST'])
 @login_required
 def settings():
-    if request.method == 'GET':
-        return render_template("settings.html", torrent_client=conf.torrent_client,
-                               fallback=conf.use_fallback,
-                               default_api=conf.default_search_api,
-                               transmission_u=conf.transmission_user,
-                               transmission_p=conf.transmission_password,
-                               qbitorrent_u=conf.qbittorrent_user,
-                               qbitorrent_p=conf.qbittorrent_password,
-                               tranmission_url=conf.transmission_url,
-                               qbitorrent_url=conf.qbittorrent_url,
-                               rutracker_u=conf.rutracker_user,
-                               rutracker_p=conf.rutracker_password,
-                               jpop_u=conf.jpopsuki_user,
-                               jpop_p=conf.jpopsuki_password,
-                               reg_enabled=conf.reg_enabled)
+    if conf.hidd_settings == "0" or current_user.admin is True:
+        if request.method == 'GET':
+            return render_template("settings.html", torrent_client=conf.torrent_client,
+                                   fallback=conf.use_fallback,
+                                   default_api=conf.default_search_api,
+                                   transmission_u=conf.transmission_user,
+                                   transmission_p=conf.transmission_password,
+                                   qbitorrent_u=conf.qbittorrent_user,
+                                   qbitorrent_p=conf.qbittorrent_password,
+                                   tranmission_url=conf.transmission_url,
+                                   qbitorrent_url=conf.qbittorrent_url,
+                                   rutracker_u=conf.rutracker_user,
+                                   rutracker_p=conf.rutracker_password,
+                                   jpop_u=conf.jpopsuki_user,
+                                   jpop_p=conf.jpopsuki_password,
+                                   reg_enabled=conf.reg_enabled,
+                                   settings_enabled=conf.hidd_settings)
+        else:
+            try:
+                qbit_url = request.form['q_url']
+                if not qbit_url.startswith('http://'):
+                    qbit_url = "http://" + qbit_url
+                conf.updateConf(request.form['tu_us'],
+                                request.form['tu_pw'],
+                                request.form['t_url'],
+                                request.form['q_us'],
+                                request.form['q_pw'],
+                                qbit_url,
+                                request.form['p_tc'],
+                                request.form['ru_u'],
+                                request.form['ru_p'],
+                                request.form['j_u'],
+                                request.form['ju_p'], )
+            except:
+                traceback.print_exc()
+            reload(conf)
+            flash("Configuration updated and reloaded")
+            return redirect(url_for("settings"))
     else:
-        try:
-            qbit_url = request.form['q_url']
-            if not qbit_url.startswith('http://'):
-                qbit_url = "http://" + qbit_url
-            conf.updateConf(request.form['tu_us'],
-                            request.form['tu_pw'],
-                            request.form['t_url'],
-                            request.form['q_us'],
-                            request.form['q_pw'],
-                            qbit_url,
-                            request.form['p_tc'],
-                            request.form['ru_u'],
-                            request.form['ru_p'],
-                            request.form['j_u'],
-                            request.form['ju_p'], )
-        except:
-            traceback.print_exc()
-        reload(conf)
-        flash("Configuration updated and reloaded")
-        return redirect(url_for("settings"))
+        flash("Setting access is restricted")
+        return redirect(url_for("index"))
 
 
 @app.route('/search', methods=['GET', 'POST'])
@@ -455,7 +460,8 @@ def logout():
 @app.route('/reg', methods=['GET', 'POST'])
 def regacc():
     if conf.reg_enabled == "0":
-        return '<h1>Registration is closed</h1>', 200
+        flash("Registration is closed")
+        return redirect(url_for("login"))
     if current_user.is_authenticated:
         return redirect(url_for("index"))
     form = Registration()
@@ -531,6 +537,17 @@ def admin(command):
             else:
                 print "disabling registration"
                 conf.updateRegistration("0")
+                reload(conf)
+                return '', 201
+        if command == "shid":
+            if conf.hidd_settings == "0":
+                print "enabling pub settings"
+                conf.updateSettings("1")
+                reload(conf)
+                return '', 201
+            else:
+                print "disabling pub settings"
+                conf.updateSettings("0")
                 reload(conf)
                 return '', 201
     else:

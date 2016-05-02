@@ -78,7 +78,11 @@
                     </div>
                     <div class="col-lg-6 col-sm-6 col-xs-12">
                         <button id="s_serv" class="btn btn-danger btn-lg btn-block">Shutdown server</button>
-                        <button id="d_dler" class="btn btn-warning btn-lg btn-block">Disable downloader</button>
+                        {% if settings_enabled == "0" %}
+                        <button id="s_hid" class="btn btn-warning btn-lg btn-block">Only allow admins see/change settings</button>
+                        {% else %}
+                        <button id="s_hid" class="btn btn-warning btn-lg btn-block">Allow everyone see/change settings</button>
+                        {% endif %}
                     </div>
                 </div>
             </div>

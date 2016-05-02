@@ -9,20 +9,43 @@
         </div>
     </div>
     <div class="container">
-        <div class="col-lg-4 col-md-6 col-xs-12">
-            <a href="/lists/p4k"><span><h2>Pitchfork</h2></span>
-                <img src="static/p4k.png" alt="P4k" class="list_margins">
-            </a></div>
-        <div class="col-lg-4 col-md-6 col-xs-12">
-                <a href="/lists/mnet/1"><span><h2>MNET</h2></span>
-                <img  src="static/mnet.png" alt="MNET" class="list_margins">
-            </a>
-        </div>
-        <div class="col-lg-4 col-md-6 col-xs-12">
-            <a href="/lists"><span><h2>Rolling Stone</h2></span>
-                <img  src="static/rs.png" alt="RS" class="list_margin_wide">
-            </a>
-        </div>
-    </div>
+        <div class="row">
+            <div class="col-lg-4 col-md-6">
+                <div class="thumbnail">
+                    <a href="/lists/p4k">
+                        <img src="static/p4k.png" class="list_margins" alt="P4k">
+                    </a>
+                    <div class="caption text-center">
+                        <a style="font-size: 2em"
+                           href="/lists/p4k">Pitchfork</a>
+                        <p>Download music reviewed by Pitchfork</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="thumbnail">
+                    <a href="/lists/mnet/1">
+                        <img src="static/mnet.png" class="list_margins" alt="mnet">
+                    </a>
+                    <div class="caption text-center">
+                        <a style="font-size: 2em"
+                           href="/lists/mnet">MNET</a>
+                        <p>Download latest eastern asian releases</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-12">
+                <div class="thumbnail">
+                    <a href="/lists">
+                        <img src="static/rs.png" alt="RS">
+                    </a>
+                    <div class="caption text-center">
+                        <a style="font-size: 2em"
+                           href="/lists">Rolling Stone</a>
+                        <p>Coming soon...maybe</p>
+                    </div>
+                </div>
+                </div>
+            </div>
     </div>
 {% endblock %}
