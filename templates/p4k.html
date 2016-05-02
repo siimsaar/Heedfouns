@@ -17,17 +17,17 @@
                     <th class="col-lg-1">Cover</th>
                     <th class="col-lg-5">Title</th>
                     <th class="col-lg-2">Genre</th>
-                    <th class="col-lg-4 text-center">Options</th>
+                    <th class="col-lg-4 text-right">Options</th>
                 </tr>
                 </thead>
                 <tbody>
                 {% for i in p4k_reviews %}
                     {% set rowloop = loop %}
                     <tr>
-                        <td><img src="{{ covers[rowloop.index - 1] }}" alt="Cover" height="84" width="84"></td>
+                        <td><img src="{{ covers[rowloop.index - 1] }}" alt="Cover" height="90" width="90"></td>
                         <td>{{ i }}</td>
                         <td>{{ genre[rowloop.index - 1] }}</td>
-                        <td class="text-center">
+                        <td class="text-right">
                             <button value="{{ i }}" class="btn btn-primary btn-xs">Download</button>
                             <a class="btn btn-danger btn-xs remove_dec"
                                href="{{ rv_links[rowloop.index - 1] }}" target="_blank">

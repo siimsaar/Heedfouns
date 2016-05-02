@@ -9,8 +9,8 @@ window.addEventListener('DOMContentLoaded', function () {
             $(_this).text("Generate again");
             $(_this).removeAttr('disabled');
         }).fail(function () {
-            $(this).text("Regenerate suggestions for all users");
-            $(this).prop('disabled', 'false');
+            $(_this).text("Regenerate suggestions for all users");
+            $(_this).removeAttr('disabled');
             $("#adminmodal").modal('show');
         });
     });

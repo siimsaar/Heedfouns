@@ -7,47 +7,53 @@ import urllib2
 from urllib import quote_plus
 from bs4 import BeautifulSoup
 
-from gevent import monkey
-monkey.patch_all()
 
-# 30 lines longer 20% faster!
-def generateSuggestions():
+def generateSuggestions(specific_user=None):
     query_s = app.datetime.now()
-    users = app.User.query.all()
-    for user in users:
-        if user.searches_num >= 3:
-            sugg_list = []
-            print "Updating suggestions for", user.name
-            user_searches = user.search_str.all()
-            app.Suggestion.query.filter_by(user_id=user.id).delete()
-            for i in reversed(xrange(len(user_searches) - 3, len(user_searches))):
-                artist_url = (
+    if specific_user is None:
+        users = app.User.query.all()
+        for user in users:
+            sug_generator(user, query_s)
+    else:
+        sug_generator(specific_user, query_s)
+
+
+def sug_generator(user, query_s):
+    if user.searches_num >= 3:
+        user.searches_num = 0
+        app.db.session.commit()
+        sugg_list = []
+        print "Updating suggestions for", user.name
+        user_searches = user.search_str.all()
+        app.Suggestion.query.filter_by(user_id=user.id).delete()
+        for i in reversed(xrange(len(user_searches) - 3, len(user_searches))):
+            artist_url = (
                 "http://ws.audioscrobbler.com/2.0/?method=artist.getsimilar&artist=%s&api_key=%s&format=json" % (
                     quote_plus(user_searches[i].search_term.encode('utf-8')), app.API_KEY))
-                artist = urllib2.urlopen(artist_url)
-                data = app.json.load(artist)
-                s_similar = []
-                for similar in data['similarartists']['artist']:
-                    s_similar.append(similar['name'])
+            artist = urllib2.urlopen(artist_url)
+            data = app.json.load(artist)
+            s_similar = []
+            for similar in data['similarartists']['artist']:
+                s_similar.append(similar['name'])
+            try:
+                sugg_list = check_existence(s_similar, sugg_list, 0, 0)
+            except:
+                continue
+            rsug_list = sugg_list[-3:]
+            print rsug_list
+            for j in rsug_list:
+                artist_cover_url = (
+                    "http://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist=%s&api_key=%s&format=json" % (
+                        quote_plus(j.encode('utf-8')), app.API_KEY))
+                artist_cover_data = urllib2.urlopen(artist_cover_url)
+                cover_data = app.json.load(artist_cover_data)
+                s_cover = cover_data['artist']['image'][3]['#text']
+                app.db.session.add(app.Suggestion(suggestion=unicode(j), cover_url=unicode(s_cover), user=user))
                 try:
-                    sugg_list = check_existence(s_similar, sugg_list, 0, 0)
+                    app.db.session.commit()
                 except:
-                    continue
-                rsug_list = sugg_list[-3:]
-                print rsug_list
-                for j in rsug_list:
-                    artist_cover_url = (
-                        "http://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist=%s&api_key=%s&format=json" % (
-                            quote_plus(j.encode('utf-8')), app.API_KEY))
-                    artist_cover_data = urllib2.urlopen(artist_cover_url)
-                    cover_data = app.json.load(artist_cover_data)
-                    s_cover = cover_data['artist']['image'][3]['#text']
-                    app.db.session.add(app.Suggestion(suggestion=unicode(j), cover_url=unicode(s_cover), user=user))
-    try:
-        app.db.session.commit()
-        print "Updated all suggestions in", app.datetime.now() - query_s
-    except:
-        app.traceback.print_exc()
+                    app.db.session.rollback()
+    print "Suggestion update took:", app.datetime.now() - query_s
 
 
 def check_existence(data, s_list, n, num_added):

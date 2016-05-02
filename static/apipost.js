@@ -10,6 +10,17 @@ function noEmptySearch() {
 }
 
 window.addEventListener("DOMContentLoaded", function () {
+    $("#refresh").click(function () {
+        var spinner = $(this).children();
+            $(spinner).attr('class', 'fa fa-refresh fa-spin');
+            $.get("./refresh").done(function (data) {
+                $("#suggestion_block").html(data);
+            }).fail(function () {
+                $("#refreshmodal").modal('show');
+            }).always(function () {
+                $(spinner).attr('class', 'fa fa-refresh');
+            });
+    });
     $('#discogs').click(function () {
         $.ajax({
             url: './api',

@@ -58,8 +58,8 @@ discg = discogs_client.Client  # Discogs search API
 q = Queue.Queue()  # FIFO with data for worker thread
 dl_requests = 0  # DL requests made
 starttime = datetime.now()  # UPTIME
-API_KEY = "d5e9e669b3a12715c860607e3ddce016" # LASTFM KEY
-USER_TOKEN = 'LfYzUfQpWhiJNnmtVQZJKuTVipDPebjIubijkzoT' # DISCOGS TOKEN
+API_KEY = "d5e9e669b3a12715c860607e3ddce016"  # LASTFM KEY
+USER_TOKEN = 'LfYzUfQpWhiJNnmtVQZJKuTVipDPebjIubijkzoT'  # DISCOGS TOKEN
 
 # CHECKS
 a_running = 0
@@ -87,10 +87,16 @@ def apisel():
         return '', 204
     return '', 400
 
-@app.route('/refresh', methods=['POST'])
+
+@app.route('/refresh', methods=['GET'])
 @login_required
 def relsug():
-    sse_id = request.form['id_sse']
+    if current_user.searches_num >= 3:
+        auto.generateSuggestions(current_user)
+        suggestion_object = g.user.suggestions.all()
+        return render_template("suggestion_template.html", sug_o=suggestion_object)
+    else:
+        return '', 405
 
 
 @app.route('/settings', methods=['GET', 'POST'])
