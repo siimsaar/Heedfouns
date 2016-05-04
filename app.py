@@ -138,10 +138,10 @@ def settings():
             except:
                 traceback.print_exc()
             reload(conf)
-            flash("Configuration updated and reloaded")
+            flash("Configuration updated and reloaded", "success")
             return redirect(url_for("settings"))
     else:
-        flash("Setting access is restricted")
+        flash("Setting access is restricted", "warning")
         return redirect(url_for("index"))
 
 
@@ -151,7 +151,7 @@ def search():
     message = request.form['search_term'].encode('utf-8')
     if len(str(message)) <= 0:
         print "empty search"
-        flash("Empty search, enter an artist!")
+        flash("Empty search, enter an artist!", "warning")
         return redirect(url_for('index'))
     return redirect(url_for('search_results', message=message))
 
@@ -168,7 +168,7 @@ def search_results(message):
         elif search_provider == "discogs":
             discogs_search(message, srchquery)
     except (IndexError, pylast.WSError):
-        flash("Couldn't find any albums", 'error')
+        flash("Couldn't find any albums", "warning")
         return redirect(url_for('index'))
     db.session.add(Search(search_term=message, user=g.user))
     g.user.searches_num += 1
@@ -447,7 +447,7 @@ def login():
                 response = make_response(redirect(url_for("index")))
                 response.set_cookie('sse_channel_id', str(uuid.uuid4()))
                 return response
-        flash("Invalid username or password", 'error')
+        flash("Invalid username or password", "warning")
     return render_template("login.html", form=form)
 
 
@@ -460,7 +460,7 @@ def logout():
 @app.route('/reg', methods=['GET', 'POST'])
 def regacc():
     if conf.reg_enabled == "0":
-        flash("Registration is closed")
+        flash("Registration is closed", "warning")
         return redirect(url_for("login"))
     if current_user.is_authenticated:
         return redirect(url_for("index"))
@@ -471,7 +471,7 @@ def regacc():
         db.session.add(user)
         db.session.commit()
         login_user(user, remember=True)
-        flash("Successfully registered, start searching for albums!")
+        flash("Successfully registered, start searching for albums!", 'success')
         return redirect(url_for("index"))
     return render_template("reg.html", form=form)
 

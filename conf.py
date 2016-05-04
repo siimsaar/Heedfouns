@@ -4,9 +4,10 @@ import os
 
 config = ConfigParser.RawConfigParser()
 
+
 def setvars():
-    global transmission_url, transmission_password, transmission_user, qbittorrent_url,\
-        qbittorrent_password, qbittorrent_url, qbittorrent_user, use_fallback, torrent_client,\
+    global transmission_url, transmission_password, transmission_user, qbittorrent_url, \
+        qbittorrent_password, qbittorrent_url, qbittorrent_user, use_fallback, torrent_client, \
         rutracker_user, rutracker_password, default_search_api, jpopsuki_user, jpopsuki_password, \
         automation_status, automation_interval, reg_enabled, hidd_settings
     config.read('config.cfg')
@@ -27,6 +28,7 @@ def setvars():
     automation_interval = config.get("auto", "check_int")
     reg_enabled = config.get("general", "reg_enabled")
     hidd_settings = config.get("general", "hidd_settings")
+
 
 if not os.path.exists('config.cfg'):
     print "• No configuration detected, generating config file"
@@ -53,10 +55,12 @@ if not os.path.exists('config.cfg'):
     config.set('auto', 'check_int', '24')
     with open('config.cfg', 'wb') as configfile:
         config.write(configfile)
+        configfile.close()
     print "• Configure in config.cfg or web"
     setvars()
 else:
     setvars()
+
 
 def updateConf(*args):
     print "• Writing new config"
@@ -75,6 +79,7 @@ def updateConf(*args):
     config.set('general', 'jpopsuki_password', args[10])
     with open('config.cfg', 'wb') as configfile:
         config.write(configfile)
+        configfile.close()
 
 
 def updateAutomation(*args):
@@ -82,14 +87,18 @@ def updateAutomation(*args):
     config.set('auto', 'check_int', args[1])
     with open('config.cfg', 'wb') as configfile:
         config.write(configfile)
+        configfile.close()
+
 
 def updateRegistration(*args):
     config.set('general', 'reg_enabled', args[0])
     with open('config.cfg', 'wb') as configfile:
         config.write(configfile)
+        configfile.close()
+
 
 def updateSettings(*args):
     config.set('general', 'hidd_settings', args[0])
     with open('config.cfg', 'wb') as configfile:
         config.write(configfile)
-
+        configfile.close()
