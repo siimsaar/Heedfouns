@@ -15,6 +15,7 @@ window.addEventListener("DOMContentLoaded", function () {
             $(spinner).attr('class', 'fa fa-refresh fa-spin fa-2x');
             $.get("./refresh").done(function (data) {
                 $("#suggestion_block").html(data);
+            $("#pre_sug").text("Suggestions based on your recent searches");
             }).fail(function () {
                 $("#refreshmodal").modal('show');
             }).always(function () {
