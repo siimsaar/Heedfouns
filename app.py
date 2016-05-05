@@ -24,6 +24,8 @@ from flask_wtf.csrf import CsrfProtect
 import conf
 import torrentdler
 import auto
+import logger
+import logging
 
 # FLASK
 app = Flask(__name__)
@@ -336,7 +338,7 @@ def initDl(q):
         result = data[0]
         user = data[1]
         id = data[2]
-        print "USER: %s | ALBUM ADDED: %s" % (user, result)
+        logging.info("USER: %s | ALBUM ADDED: %s" % (user, result))
         try:
             dlalbum.getCookies()
             dlalbum.getAlbums(result, client=conf.torrent_client)
@@ -444,9 +446,11 @@ def login():
         if user is not None:
             if User.check_password(user, form.password.data):
                 login_user(user, remember=True)
+                logging.info("%s logged in" % user.name)
                 response = make_response(redirect(url_for("index")))
                 response.set_cookie('sse_channel_id', str(uuid.uuid4()))
                 return response
+        logging.warning("Invalid login")
         flash("Invalid username or password", "warning")
     return render_template("login.html", form=form)
 
@@ -471,6 +475,7 @@ def regacc():
         db.session.add(user)
         db.session.commit()
         login_user(user, remember=True)
+        logging.info("New user: %s registered" % user.name)
         flash("Successfully registered, start searching for albums!", 'success')
         return redirect(url_for("index"))
     return render_template("reg.html", form=form)

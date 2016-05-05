@@ -6,15 +6,18 @@ import logging
 import urllib2
 from urllib import quote_plus
 from bs4 import BeautifulSoup
+import logging
 
 
 def generateSuggestions(specific_user=None):
     query_s = app.datetime.now()
     if specific_user is None:
+        logging.info("Generating suggestions for all users")
         users = app.User.query.all()
         for user in users:
             sug_generator(user, query_s)
     else:
+        logging.info("Generating suggestions for %s" % specific_user.name)
         sug_generator(specific_user, query_s)
 
 
@@ -23,7 +26,6 @@ def sug_generator(user, query_s):
         user.searches_num = 0
         app.db.session.commit()
         sugg_list = []
-        print "Updating suggestions for", user.name
         user_searches = user.search_str.all()
         app.Suggestion.query.filter_by(user_id=user.id).delete()
         for i in reversed(xrange(len(user_searches) - 3, len(user_searches))):
@@ -53,7 +55,7 @@ def sug_generator(user, query_s):
                     app.db.session.commit()
                 except:
                     app.db.session.rollback()
-    print "Suggestion update took:", app.datetime.now() - query_s
+    logging.info("Suggestion update took:", app.datetime.now() - query_s)
 
 
 def check_existence(data, s_list, n, num_added):
@@ -69,6 +71,7 @@ def check_existence(data, s_list, n, num_added):
 
 
 def get_upcoming_albums_from_metacritic():
+    logging.info("Getting upcoming albums from metacritic")
     ureq = urllib2.Request(r'http://www.metacritic.com/browse/albums/release-date/coming-soon/date',
                            headers={
                                'User-Agent': "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36"})
@@ -96,7 +99,7 @@ def look_for_artist(forced=False):
         if forced is False:
             global l_a_check
             l_a_check = app.datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
-        print "Checking for upcoming albums"
+        logging.info("Checking for upcoming albums")
         ualbums = get_upcoming_albums_from_metacritic()
         tracked_artists = app.TrackedArtists.query.all()
         for z in reversed(tracked_artists):
@@ -104,7 +107,7 @@ def look_for_artist(forced=False):
                 for x in j:
                     artist_n = unicode(x).split(" - ")
                     if unicode(z.artist_name).lower() == artist_n[0].lower():
-                        print ("%s - %s (%s)" % (artist_n[0], artist_n[1], unicode(i)))
+                        logging.info("%s - %s (%s) added to the schedule list" % (artist_n[0], artist_n[1], unicode(i)))
                         name = artist_n[0] + " - " + artist_n[1]
                         q_al = app.QueueAlbum(album_name=name, date=unicode(i), status="0")
                         try:
@@ -124,7 +127,7 @@ def look_for_torrents(forced=False):
         if forced is False:
             global l_t_check
             l_t_check = app.datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
-        print "Checking for release torrents"
+        logging.info("Checking for releases in torrents")
         todays_date = app.datetime.now()
         schd_albums = app.QueueAlbum.query.all()
         for query in schd_albums:

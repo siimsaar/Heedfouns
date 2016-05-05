@@ -232,7 +232,7 @@ class TorrentDl():
             output.write(tfile.content)
         self.establishRPC(magnet_link=None, client=client, type="torrent")
 
-    @retry(tries=5)
+    @retry(tries=2)
     def login_forjpop(self):
         driver.get("http://jpopsuki.eu/login.php")
         usr_field = driver.find_element_by_xpath('//*[@id="username"]')
@@ -243,9 +243,14 @@ class TorrentDl():
         pwd_field.send_keys(self.jpopsuki_password)
         rmb_field.click()
         smbit.click()
-        open("cookie_jpop.dat", 'w').write(str(driver.get_cookie("PHPSESSID")))
-        global jlogged
-        jlogged = True
+        if(str(driver.current_url) == "http://jpopsuki.eu/index.php"):
+            print "Successfully logged into jpopsuki"
+            open("cookie_jpop.dat", 'w').write(str(driver.get_cookie("PHPSESSID")))
+            global jlogged
+            jlogged = True
+        else:
+            print "Jpopsuki login failed"
+            raise Exception
 
     def check_exists_by_xpath(self, xpath):
         try:
