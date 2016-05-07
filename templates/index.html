@@ -57,7 +57,7 @@
                                                                                                    alt="img"></a>
                                 {% else %}
                                     <a href="/results/{{ i.suggestion.replace(" ", "%20") }}"><img class="img-circle"
-                                                                                                   src="/static/100.png"
+                                                                                                   src="/static/img/100.png"
                                                                                                    style="height: 9em; width: 9em"
                                                                                                    alt="img"></a>
                                 {% endif %}
@@ -108,5 +108,5 @@
 {% endblock %}
 {% block scripts %}
     {{ super() }}
-    <script src="{{ url_for('.static', filename='apipost.js') }}"></script>
+    <script src="{{ url_for('.static', filename='js/apipost.js') }}"></script>
 {% endblock %}

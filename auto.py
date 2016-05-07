@@ -122,7 +122,7 @@ def look_for_artist(forced=False):
         app.pushtoListener(data)
 
 
-def look_for_torrents(forced=False):
+def look_for_torrents(forced=False, sse_id="b"):
     if int(app.conf.automation_status) == 1 or forced is True:
         if forced is False:
             global l_t_check

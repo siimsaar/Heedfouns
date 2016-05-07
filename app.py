@@ -15,7 +15,6 @@ import discogs_client
 import pylast
 from flask import *
 from flask_bootstrap import Bootstrap
-from flask_cache import Cache
 from flask_login import LoginManager, login_user, login_required, current_user, logout_user
 from flask_sqlalchemy import SQLAlchemy
 from flask.ext.sse import sse, send_event
@@ -29,7 +28,6 @@ import logging
 
 # FLASK
 app = Flask(__name__)
-cache = Cache(app, config={'CACHE_TYPE': 'simple'})
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.debug = True
 
@@ -59,6 +57,7 @@ from forms import Login, Registration
 discg = discogs_client.Client  # Discogs search API
 q = Queue.Queue()  # FIFO with data for worker thread
 dl_requests = 0  # DL requests made
+threadSpawned = False  # idk what im doing
 starttime = datetime.now()  # UPTIME
 API_KEY = "d5e9e669b3a12715c860607e3ddce016"  # LASTFM KEY
 USER_TOKEN = 'LfYzUfQpWhiJNnmtVQZJKuTVipDPebjIubijkzoT'  # DISCOGS TOKEN
@@ -266,12 +265,14 @@ def automation_conf():
 def run_automation():
     global a_running, t_running
     if request.form['run_type'] == "album_check":
+        logging.info("%s force ran album check" % current_user.name)
         if a_running == 1:
             return "", 204
         a_running = 1
         auto.look_for_artist(forced=True)
         a_running = 0
     else:
+        logging.info("%s force ran torrent check" % current_user.name)
         if t_running == 1:
             return "", 204
         auto.look_for_torrents(forced=True)
@@ -280,11 +281,13 @@ def run_automation():
 
 
 def pushtoListener(data):
-    print "ran_shedl"
+    logging.info("Pushing data to automation SSE channel")
     send_event("scheduled", json.dumps(data), channel='sched')
 
 
 def pushtoListenerHiVal(cur_u, id):
+    if id is None:
+        return
     hival_u = User.query.filter_by(name=cur_u).first()
     hival_u.historynum += 1
     db.session.commit()
@@ -292,13 +295,34 @@ def pushtoListenerHiVal(cur_u, id):
 
 
 def pushtoListenerHistory(data):
-    print "ran_history"
+    logging.info("Pushing data to history SSE channel")
     send_event("history", json.dumps(data), channel='history')
+
+
+def pushtoProgress(album_n, done=False, update_q=False):
+    with app.app_context():
+        global percentage
+        global cur_album
+        logging.info("Pushing data to progress channel")
+        if dl_requests == 0:
+            percentage = "100"
+        else:
+            percentage = str(100 * (1 / (dl_requests * 1.5)))
+        logging.info("Search %s complete" % percentage)
+        if album_n is None:
+            send_event("progress", json.dumps({"queue_s": str(dl_requests) + " left", "percent": percentage + '%'}),
+                       channel='progress')
+            return
+        cur_album = album_n
+        send_event("progress",
+                   json.dumps({"album": album_n, "queue_s": str(dl_requests) + " left", "percent": percentage + '%'}),
+                   channel='progress')
 
 
 @app.route('/dl', methods=['GET', 'POST'])
 @login_required
-def download(name=None):
+def download(name=None, sse_id=None):
+    global threadSpawned
     try:
         result = request.form['alname']
         sse_id = request.form['id_sse']
@@ -307,16 +331,20 @@ def download(name=None):
         try:
             result = name
         except:
-            print "download undefined or identifier missing"
+            logging.warning("Undefined download initiated")
             traceback.print_exc()
-    if dl_requests > 0:
+
+    if dl_requests > 0 or threadSpawned is True:
         dl_requests += 1
         data = [result, g.user.name, sse_id]
         q.put(data)
+        pushtoProgress(album_n=None, update_q=True)
     else:
         dl_requests += 1
+        threadSpawned = True
         data = [result, g.user.name, sse_id]
         q.put(data)
+        pushtoProgress(album_n=None, update_q=True)
         dlThread = threading.Thread(target=initDl, args=(q,)).start()
     return '', 204
 
@@ -338,6 +366,9 @@ def initDl(q):
         result = data[0]
         user = data[1]
         id = data[2]
+        print q.unfinished_tasks
+        with app.app_context():
+            pushtoProgress(result)
         logging.info("USER: %s | ALBUM ADDED: %s" % (user, result))
         try:
             dlalbum.getCookies()
@@ -359,22 +390,25 @@ def initDl(q):
             try:
                 exitingobj = db.session.query(Album.id).filter(Album.album_name == rq_album.album_name).first()
                 if exitingobj:
-                    print "Updating status"
+                    logging.info("Updating status")
                     Album.query.get(exitingobj.id).status = rq_album.status
                     db.session.commit()
-                    with app.app_context():
-                        pushtoListenerHiVal(user, id)
                 else:
                     db.session.add(rq_album)
                     db.session.commit()
                     data = ({"name": result, "status": rq_album.status})
-                    with app.app_context():
-                        pushtoListenerHistory(data)
-                        pushtoListenerHiVal(user, id)
                 q.task_done()
                 global dl_requests
                 dl_requests -= 1
+                with app.app_context():
+                    if not exitingobj:  # while frontend cant handle this it must be here
+                        pushtoListenerHistory(data)
+                        pushtoListenerHiVal(user, id)
+                    pushtoProgress(album_n=None, update_q=True)
             except:
+                dl_requests -= 1
+                with app.app_context():
+                    pushtoProgress(album_n=None, update_q=True)
                 traceback.print_exc()
                 db.session.rollback()
                 pass
@@ -410,7 +444,6 @@ def queue():
 @app.route('/more_info/<artist>/<album>', methods=['GET', 'POST'])
 @login_required
 def m_info(artist, album):
-    global API_KEY
     tag_l = []
     trak_l = []
     similar_l = []
@@ -483,7 +516,6 @@ def regacc():
 
 @app.route('/lists/p4k')
 @login_required
-@cache.cached(timeout=86400)
 def p4k_listing():
     ureq = urllib2.Request(r'http://pitchfork.com/reviews/albums', headers={'User-Agent': "asdf"})
     site = urllib2.urlopen(ureq)
@@ -535,23 +567,23 @@ def admin(command):
             return '', 201
         if command == "reg":
             if conf.reg_enabled == "0":
-                print "enabling registration"
+                logging.info("enabling registration")
                 conf.updateRegistration("1")
                 reload(conf)
                 return '', 201
             else:
-                print "disabling registration"
+                logging.warning("disabling registration")
                 conf.updateRegistration("0")
                 reload(conf)
                 return '', 201
         if command == "shid":
             if conf.hidd_settings == "0":
-                print "enabling pub settings"
+                logging.info("enabling pub settings")
                 conf.updateSettings("1")
                 reload(conf)
                 return '', 201
             else:
-                print "disabling pub settings"
+                logging.warning("disabling pub settings")
                 conf.updateSettings("0")
                 reload(conf)
                 return '', 201
@@ -561,7 +593,6 @@ def admin(command):
 
 @app.route('/lists/mnet/<page>')
 @login_required
-@cache.cached(timeout=86400)
 def list_mnet(page):
     ureq = urllib2.Request(r'http://mwave.interest.me/kpop/new-album.m?page.nowPage=' + page,
                            headers={'User-Agent': "asdf"})
@@ -612,6 +643,18 @@ def unauthorized():
 @app.before_request
 def get_current_user():
     g.user = current_user
+
+
+@app.before_request
+def progress_stuff():
+    global percentage
+    global cur_album
+    g.dl = dl_requests
+    try:
+        g.prnt = percentage
+        g.album = cur_album
+    except:
+        pass
 
 
 @app.before_request
