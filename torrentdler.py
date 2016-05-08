@@ -149,13 +149,16 @@ class TorrentDl():
             #traceback.print_exc()
             print "✗ No torrents found in Kickass"
             try:
+                if self.jpopsuki_user == "" or self.jpopsuki_password == "":
+                    print "no login data for jpopsuki"
+                    raise Exception
                 print "• Searching from Jpopsuki"
                 global jlogged
                 if jlogged is False:
                     self.login_forjpop()
                 self.jpopsuki(client, album)
             except:
-                print "✗ No torrents found in jpopsuki"
+                print "✗ Jpopsuki search failed"
                 #traceback.print_exc()
                 raise ReferenceError
 
@@ -228,8 +231,10 @@ class TorrentDl():
         f = open('cookie_jpop.dat', "r")
         cookie = ast.literal_eval(f.read())
         tfile = requests.get(dl_link, cookies=f)
+        f.close()
         with open('torrent.torrent', 'wb') as output:
             output.write(tfile.content)
+            output.close()
         self.establishRPC(magnet_link=None, client=client, type="torrent")
 
     @retry(tries=2)

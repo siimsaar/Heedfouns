@@ -24,17 +24,22 @@ window.addEventListener('DOMContentLoaded', function () {
                 </div>\
             </div>\
         </div>');
+            $(".status_inf").css('bottom', '-200px');
+            $("#progress_bar").animate({bottom: '0'});
         } else {
             if (data.album === undefined || data.album === null) {
                 $("#cur_q").text(data.queue_s);
                 $("#cur_per").attr('style', 'width: ' + data.percent);
                 if (data.queue_s.split(" ")[0] === "0") {
                     $("#cur_p").text("Search complete, closing...");
-                    setTimeout(function () {
-                        $("#progress_bar").remove();
+                    window.timeout_w = setTimeout(function () {
+                        $("#progress_bar").animate({bottom: '-200px'}, function () {
+                            $("#progress_bar").remove();
+                        });
                     }, 3000);
                 }
             } else {
+                clearTimeout(window.timeout_w);
                 $("#cur_p").text(data.album);
                 $("#cur_q").text(data.queue_s);
                 $("#cur_per").attr('style', 'width: ' + data.percent);

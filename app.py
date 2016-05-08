@@ -57,7 +57,7 @@ from forms import Login, Registration
 discg = discogs_client.Client  # Discogs search API
 q = Queue.Queue()  # FIFO with data for worker thread
 dl_requests = 0  # DL requests made
-threadSpawned = False  # idk what im doing
+threadSpawned = False  # oh well
 starttime = datetime.now()  # UPTIME
 API_KEY = "d5e9e669b3a12715c860607e3ddce016"  # LASTFM KEY
 USER_TOKEN = 'LfYzUfQpWhiJNnmtVQZJKuTVipDPebjIubijkzoT'  # DISCOGS TOKEN
@@ -333,7 +333,6 @@ def download(name=None, sse_id=None):
         except:
             logging.warning("Undefined download initiated")
             traceback.print_exc()
-
     if dl_requests > 0 or threadSpawned is True:
         dl_requests += 1
         data = [result, g.user.name, sse_id]
@@ -392,6 +391,7 @@ def initDl(q):
                 if exitingobj:
                     logging.info("Updating status")
                     Album.query.get(exitingobj.id).status = rq_album.status
+                    data = ({"name": result, "status": rq_album.status, "type": "update"})
                     db.session.commit()
                 else:
                     db.session.add(rq_album)
@@ -401,9 +401,8 @@ def initDl(q):
                 global dl_requests
                 dl_requests -= 1
                 with app.app_context():
-                    if not exitingobj:  # while frontend cant handle this it must be here
-                        pushtoListenerHistory(data)
-                        pushtoListenerHiVal(user, id)
+                    pushtoListenerHistory(data)
+                    pushtoListenerHiVal(user, id)
                     pushtoProgress(album_n=None, update_q=True)
             except:
                 dl_requests -= 1
