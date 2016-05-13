@@ -51,8 +51,8 @@ function moreinfo(bttn, artist, album) {
                 $(release).find('i').remove();
                 $(tag).find('i').remove();
                 $(similar).find('i').remove();
-                if(data.cover != "") {
-                  cover.setAttribute('src', data.cover);
+                if (data.cover !== "") {
+                    cover.setAttribute('src', data.cover);
                 }
                 $(release).append(data.release);
                 for (i = 0; i < data.tags.length; i++) {

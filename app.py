@@ -10,7 +10,7 @@ import uuid
 from urllib import quote_plus
 from collections import OrderedDict
 from datetime import datetime
-
+from random import randint
 import discogs_client
 import pylast
 from flask import *
@@ -217,7 +217,7 @@ def automation():
     if request.method == 'POST':
         artist_n = request.form['art_name']
         if (len(artist_n)) == 0:
-            return "", 400
+            return "", 500
         db.session.add(TrackedArtists(artist_name=artist_n))
         db.session.commit()
         return "", 204
@@ -559,7 +559,7 @@ def admin(command):
     if current_user.admin is True:
         if command == "shutdown":
             print "shutting down"
-            os.system("killall -9 gunicorn")
+            os.system("killall gunicorn")
             return '', 201
         if command == "sugg":
             auto.generateSuggestions()
@@ -590,10 +590,10 @@ def admin(command):
         return '', 401
 
 
-@app.route('/lists/mnet/<page>')
+@app.route('/lists/mnet/<int:page>')
 @login_required
 def list_mnet(page):
-    ureq = urllib2.Request(r'http://mwave.interest.me/kpop/new-album.m?page.nowPage=' + page,
+    ureq = urllib2.Request(r'http://mwave.interest.me/kpop/new-album.m?page.nowPage=' + str(page),
                            headers={'User-Agent': "asdf"})
     site = urllib2.urlopen(ureq)
     parser = etree.HTMLParser()

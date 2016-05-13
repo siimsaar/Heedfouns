@@ -111,7 +111,6 @@ function deleteButtons() {
 function runAlbumCheck() {
     var run_bttn = document.getElementById('album_check');
     run_bttn.addEventListener("click", function (e) {
-        e.preventDefault();
         var this_bttn = $(this);
         if ($(this).text() === "RUNNING") {
             return;
@@ -143,7 +142,6 @@ function runAlbumCheck() {
 function runTorrentCheck() {
     var run_bttn = document.getElementById('torrent_check');
     run_bttn.addEventListener("click", function (e) {
-        e.preventDefault();
         var this_bttn = $(this);
         if ($(this).text() === "RUNNING") {
             return;

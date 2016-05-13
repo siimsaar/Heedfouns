@@ -23,10 +23,11 @@
                                                       value="{{ rutracker_u }}"></p>
                             <p>ruTracker pw: <input class="form-control" name="ru_p" type="password"
                                                     value="{{ rutracker_p }}"></p>
-                            <p>jpopsuki user: <input class="form-control" name="j_u" type="text" value="{{ jpop_u }}">
+                            <p>jpopsuki user (optional): <input class="form-control" name="j_u" type="text"
+                                                                value="{{ jpop_u }}">
                             </p>
-                            <p>jpopsuki pw: <input class="form-control" name="ju_p" type="password"
-                                                   value="{{ jpop_p }}"></p>
+                            <p>jpopsuki pw (optional): <input class="form-control" name="ju_p" type="password"
+                                                              value="{{ jpop_p }}"></p>
                             <p>
                             <div class="radio">
                                 <h3>Torrent client:</h3>
@@ -69,7 +70,9 @@
             <div class="container">
                 <div class="row">
                     <div class="col-lg-6 col-sm-6 col-xs-12">
-                    <button id="recalc" class="btn btn-primary btn-lg btn-block">Regenerate suggestions for all users</button>
+                        <button id="recalc" class="btn btn-primary btn-lg btn-block">Regenerate suggestions for all
+                            users
+                        </button>
                         {% if reg_enabled == "1" %}
                             <button id="d_reg" class="btn btn-success btn-lg btn-block">Disable registration</button>
                         {% else %}
@@ -79,9 +82,13 @@
                     <div class="col-lg-6 col-sm-6 col-xs-12">
                         <button id="s_serv" class="btn btn-danger btn-lg btn-block">Shutdown server</button>
                         {% if settings_enabled == "0" %}
-                        <button id="s_hid" class="btn btn-warning btn-lg btn-block">Only allow admins see/change settings</button>
+                            <button id="s_hid" class="btn btn-warning btn-lg btn-block">Only allow admins see/change
+                                settings
+                            </button>
                         {% else %}
-                        <button id="s_hid" class="btn btn-warning btn-lg btn-block">Allow everyone see/change settings</button>
+                            <button id="s_hid" class="btn btn-warning btn-lg btn-block">Allow everyone see/change
+                                settings
+                            </button>
                         {% endif %}
                     </div>
                 </div>
