@@ -18,7 +18,7 @@ window.addEventListener('DOMContentLoaded', function () {
                 '<div class="panel-body">'+
                     '<span id="cur_p">' + data.album + '</span>'+
                         '<span id="cur_q" class="pull-right">' + data.queue_s + '</span>'+
-                    '<div class="progress progress-striped active">'+
+                    '<div id="progress_div" class="progress progress-striped active">'+
                         '<div id="cur_per" class="progress-bar" style="width:' + data.percent + '%"></div>'+
                     '</div>'+
                 '</div>'+

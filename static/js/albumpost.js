@@ -23,10 +23,10 @@ function streambttns() {
                 '<div class="panel panel-info">' +
                 '<div class="panel-heading">' +
                 '<button type="button" class="close" id="kill_stream">×</button>' +
-                '<h3 class="panel-title"><span class="fa fa-music"></span> Stream</h3>' +
+                '<h3 class="panel-title"><span class="fa fa-file-audio-o"></span> Stream</h3>' +
                 '</div>' +
                 '<div class="panel-body-nopadding">' +
-                '<iframe id="youtube_stream" width="480" height="270" src="' + val + '" frameborder="0" allowfullscreen></iframe>' +
+                '<iframe id="youtube_stream" src="' + val + '" frameborder="0" allowfullscreen></iframe>' +
                 '</div>' +
                 '</div>' +
                 '</div>' +

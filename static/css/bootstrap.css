@@ -7162,12 +7162,6 @@ div.status_inf {
     min-width: 125px;
     z-index: 5;
 }
-@media (max-width: 768px) {
-  div.stream_inf {
-    bottom: -300px !important;
-    width: 50%;
-  }
-}
 div.stream_inf {
     position: fixed;
     bottom: 0;
@@ -7226,4 +7220,19 @@ fieldset[disabled] .btn-purple:focus,
 .btn-purple[disabled].focus,
 fieldset[disabled] .btn-purple.focus {
   background-color: #645C92;
+}
+#youtube_stream {
+min-width: 480px;
+min-height: 270px;
+}
+@media (max-width: 768px) {
+  #youtube_stream {
+    min-width: 240px;
+    min-height: 135px;
+  }
+}
+@media (max-width: 768px) {
+  #progress_div {
+   display: none;
+  }
 }

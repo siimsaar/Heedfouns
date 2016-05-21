@@ -3,7 +3,7 @@
 ## Function
 * Automatically find torrents from Kickass/RuTracker/Jpopsuki and add them to your torrent client
 * Check for new albums from your favourite artists and immediately download them on the release date
-* Automatically find playlists/full album videos from Youtube *buggy*
+* Automatically find playlists/full album videos from Youtube [buggy ⛏]
 * Search for artists with LastFM or Discogs API
 
 ## Dependencies
