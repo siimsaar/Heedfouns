@@ -25,6 +25,7 @@ import torrentdler
 import auto
 import logger
 import logging
+import stream
 
 # FLASK
 app = Flask(__name__)
@@ -438,6 +439,17 @@ def queue():
         Album.query.get(changetxt.id).album_name = edits['newn']
         db.session.commit()
         return '', 204
+
+
+@app.route('/stream/<album>')
+@login_required
+def get_stream(album):
+    if len(album) > 0:
+        try:
+            link = stream.youtube_search(album)
+            return link, 200
+        except:
+            return "", 500
 
 
 @app.route('/more_info/<artist>/<album>', methods=['GET', 'POST'])

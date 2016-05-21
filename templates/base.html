@@ -2,6 +2,11 @@
 
 {% block title %}py-proj{% endblock %}
 
+{% block head %}
+    {{ super() }}
+    <link rel="icon" type="image/png" href="/static/img/favicon.png"/>
+{% endblock %}
+
 {% block navbar %}
     <div class="navbar navbar-default" id="nav_bar" role="navigation">
         <div class="container">
@@ -70,7 +75,7 @@
             </div>
         </div>
     </div>
-    {% if g.dl > 0 and g.user.is_authenticated  %}
+    {% if g.dl > 0 and g.user.is_authenticated %}
         <div id="progress_bar" class="status_inf">
             <div class="panel panel-info">
                 <div class="panel-heading">

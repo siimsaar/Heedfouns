@@ -4862,8 +4862,8 @@ fieldset[disabled] .navbar-inverse .btn-link:focus {
   display: inline-block;
   padding: 5px 14px;
   background-color: #78A2D8;
+  box-shadow: 5px 5px 20px rgba(0, 0, 0, 0.15);
   border: 1px solid transparent;
-  border-radius: 15px;
 }
 .pager li > a:hover,
 .pager li > a:focus {
@@ -5493,6 +5493,9 @@ button.list-group-item-danger.active:focus {
 }
 .panel-body {
   padding: 15px;
+}
+.panel-body-nopadding {
+  padding: 0px;
 }
 .panel-heading {
   padding: 10px 15px;
@@ -7108,7 +7111,8 @@ a.list-group-item-danger.active:focus {
 .more_info_pic {
   vertical-align: top;
   width: 120px;
-  height: 120px
+  height: 120px;
+  border: 2px solid #829CA6;
 }
 .form_gap {
   padding-top: 5%;
@@ -7158,9 +7162,68 @@ div.status_inf {
     min-width: 125px;
     z-index: 5;
 }
+@media (max-width: 768px) {
+  div.stream_inf {
+    bottom: -300px !important;
+    width: 50%;
+  }
+}
+div.stream_inf {
+    position: fixed;
+    bottom: 0;
+    left: 21px;
+    z-index: 5;
+}
 .slight_s {
   box-shadow: 5px 5px 20px rgba(0, 0, 0, 0.20);
 }
 td:first-child, .form-control-custom:first-child {
-text-shadow: 5px 5px 15px rgba(0, 0, 0, 0.15);
+  text-shadow: 5px 5px 15px rgba(0, 0, 0, 0.15);
+  text-overflow: ellipsis;
+}
+.btn-purple {
+  color: #ffffff;
+  background-color: #968CCC;
+}
+.btn-purple:focus,
+.btn-purple.focus {
+  color: #ffffff;
+}
+.btn-purple:hover {
+  color: #ffffff;
+  background-color: #A399D8;
+}
+.btn-purple:active,
+.btn-purple.active,
+.open > .dropdown-toggle.btn-purple {
+  color: #ffffff;
+  background-color: #7B73A9;
+}
+.btn-purple:active:hover,
+.btn-purple.active:hover,
+.open > .dropdown-toggle.btn-purple:hover,
+.btn-purple:active:focus,
+.btn-purple.active:focus,
+.open > .dropdown-toggle.btn-purple:focus,
+.btn-purple:active.focus,
+.btn-purple.active.focus,
+.open > .dropdown-toggle.btn-purple.focus {
+  color: #ffffff;
+  background-color: #524C77;
+}
+.btn-purple:active,
+.btn-purple.active,
+.open > .dropdown-toggle.btn-purple {
+  background-image: none;
+}
+.btn-purple.disabled:hover,
+.btn-purple[disabled]:hover,
+fieldset[disabled] .btn-warning:hover,
+.btn-purple.disabled:focus,
+.btn-purple[disabled]:focus,
+fieldset[disabled] .btn-purple:focus,
+.btn-purple.disabled.focus,
+.btn-purple[disabled].focus,
+fieldset[disabled] .btn-purple.focus {
+  background-color: #645C92;
 }

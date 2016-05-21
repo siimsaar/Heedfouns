@@ -7,6 +7,48 @@ function getDlBttns() {
     }
 }
 
+function getStreamBttns() {
+    var bttns = document.getElementsByClassName("btn btn-purple btn-xs");
+    for (var i = 0; i < bttns.length; i++) {
+        bttns[i].addEventListener("click", streambttns);
+    }
+}
+
+function streambttns() {
+    $(this).prop('disabled', 'true');
+    var _self = this;
+    var player_url = $.get("/stream/" + $(this).val()).success(function (val) {
+        if ($("#stream_bar").length === 0) {
+            $("body").append('<div id="stream_bar" class="stream_inf">' +
+                '<div class="panel panel-info">' +
+                '<div class="panel-heading">' +
+                '<button type="button" class="close" id="kill_stream">×</button>' +
+                '<h3 class="panel-title"><span class="fa fa-music"></span> Stream</h3>' +
+                '</div>' +
+                '<div class="panel-body-nopadding">' +
+                '<iframe id="youtube_stream" width="480" height="270" src="' + val + '" frameborder="0" allowfullscreen></iframe>' +
+                '</div>' +
+                '</div>' +
+                '</div>' +
+                '</div>');
+            if(window.innerWidth > 768) {
+                $(".stream_inf").css('bottom', '-200px');
+                $("#stream_bar").animate({bottom: '0'});
+            }
+            window.last_bttn = _self;
+            $("#kill_stream").click(function () {
+                $("#stream_bar").remove();
+                $(window.last_bttn).removeAttr('disabled');
+            });
+        } else {
+            $(window.last_bttn).removeAttr('disabled');
+            window.last_bttn = _self;
+            $("#youtube_stream").attr('src', val);
+        }
+    }).error(function (err) {
+    });
+}
+
 function dlbttns() {
     var val = $(this).val();
     $.ajax({
@@ -77,8 +119,8 @@ function moreinfo(bttn, artist, album) {
                 }
                 $(bttn).prop('id', id + "-button-used");
             })
-            .fail(function () {
-                console.log("error");
+            .fail(function (err) {
+                console.log(err);
             });
     } else {
         $(bttn).text('More info');
@@ -107,5 +149,6 @@ function search() {
 window.addEventListener("DOMContentLoaded", function () {
     getDlBttns();
     getInfoBttns();
+    getStreamBttns()
     search();
 });

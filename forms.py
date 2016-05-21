@@ -12,9 +12,9 @@ class Login(Form):
 class Registration(Form):
     name = StringField('Username', validators=[DataRequired(), Length(1, 24),
                                                Regexp('^[A-Za-z][A-Za-z0-9_.]*$', 0, "Invalid chars")])
-    password = PasswordField('Password', validators=[DataRequired(), equal_to('password2', "Passwords dont match!"),
+    password = PasswordField('Password (min 4 chars)', validators=[DataRequired(), equal_to('password2', "Passwords dont match!"),
                                                      Length(4, 24, "Password too short ( 4 chars min ) ")])
-    password2 = PasswordField('Confirm pw', validators=[DataRequired()])
+    password2 = PasswordField('Confirm password', validators=[DataRequired()])
     submit = SubmitField('Register')
 
     def validate_name(self, field):
