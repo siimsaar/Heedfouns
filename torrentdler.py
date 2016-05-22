@@ -171,7 +171,7 @@ class TorrentDl():
                                         password=self.transmission_password)
             if type == "magnet":
                 print "• Adding magnet to", client
-                tc.add_torrent(magnet_prefix + magnet_link.text)
+                tc.add_torrent(magnet_link)
             else:
                 print "• Adding torrent to", client
                 tc.add_torrent('file://' + os.path.abspath('torrent.torrent'))
