@@ -5883,6 +5883,16 @@ button.list-group-item-danger.active:focus {
   opacity: 0.2;
   filter: alpha(opacity=20);
 }
+.minimize {
+  float: right;
+  font-size: 22.5px;
+  font-weight: bold;
+  line-height: 1;
+  color: #ffffff;
+  text-shadow: none;
+  opacity: 0.2;
+  filter: alpha(opacity=20);
+}
 .close:hover,
 .close:focus {
   color: #ffffff;
@@ -5893,6 +5903,14 @@ button.list-group-item-danger.active:focus {
 }
 button.close {
   padding: 0;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  -webkit-appearance: none;
+}
+button.minimize {
+  padding-left: 5px;
+  padding-top: 4px;
   cursor: pointer;
   background: transparent;
   border: 0;
@@ -7024,6 +7042,15 @@ textarea:focus {
 .close:focus {
   opacity: 1;
 }
+.minimize {
+  text-decoration: none;
+  text-shadow: none;
+  opacity: 0.4;
+}
+.minimize:hover,
+.minimize:focus {
+  opacity: 1;
+}
 .alert .alert-link {
   color: #fff;
   text-decoration: underline;
@@ -7078,6 +7105,10 @@ a.list-group-item-danger.active:focus {
 }
 .quarter_margin {
  margin-top: 5%;
+}
+.lr_body {
+ margin-top: 10%;
+ background: #385D75;
 }
 .threeper_margin {
  margin-top: 3%;
@@ -7235,4 +7266,14 @@ min-height: 270px;
   #progress_div {
    display: none;
   }
+}
+.lr_box {
+    background-color: rgba(255, 255, 255, 0.15);
+    padding: 2.5em 1.5em 5em 1.5em;
+    border-top: 6px solid #e6e6e6;
+    box-shadow: 0px 5px 50px rgba(0, 0, 0, 0.3);
+}
+.login_buttons {
+    margin-top: 1em;
+    width: 100%;
 }

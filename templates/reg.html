@@ -1,26 +1,33 @@
-{% extends "base.html" %}
+{% extends "base_min.html" %}
 {% import "bootstrap/wtf.html" as wtf %}
 
 {% set active_page = "reg" %}
 
 {% block page_content %}
     <div class="container">
-        <div class="page-header">
-            <h1>Registration</h1>
-        </div>
-    </div>
-    <div class="container">
         <div class="row">
-            <div class="col-lg-12">
-                <form action="" method="post" class="form" role="form">
-                    {{ form.csrf_token }}
-                    {{ wtf.form_errors(form, hiddens="only") }}
+            <div class="col-lg-12 text-center">
+                <div class="col-md-6 col-md-offset-3">
+                    <div class="lr_box">
+                        <img style="margin-bottom: 5%" alt="radio" src="/static/img/icon.png">
+                        {% for category, message in get_flashed_messages(with_categories=true) %}
+                            <div class="alert alert-{{ category }}">
+                                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                        <form action="/reg" method="post" class="form">
+                            {{ form.csrf_token }}
+                            {{ wtf.form_errors(form, hiddens="only") }}
 
-                    {{ wtf.form_field(form.name) }}
-                    {{ wtf.form_field(form.password) }}
-                    {{ wtf.form_field(form.password2) }}
-                    {{ wtf.form_field(form.submit) }}
-                </form>
+                            {{ wtf.form_field(form.name) }}
+                            {{ wtf.form_field(form.password) }}
+                            {{ wtf.form_field(form.password2) }}
+                            <input class="btn btn-success login_buttons" id="submit" name="submit" type="submit"
+                                   value="Register">
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

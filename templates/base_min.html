@@ -1,0 +1,17 @@
+{% extends "bootstrap/base.html" %}
+
+{% block title %}py-proj{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    <link rel="icon" type="image/png" href="/static/img/favicon.png"/>
+{% endblock %}
+
+{% block body_attribs %}
+class="lr_body"
+{% endblock %}
+
+{% block content %}
+    {% block page_content %}{% endblock %}
+    <p class="text-center quarter_px_margin">Uptime: {{ g.time }} | version 0.1</p>
+{% endblock %}

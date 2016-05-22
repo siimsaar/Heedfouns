@@ -23,6 +23,7 @@ function streambttns() {
                 '<div class="panel panel-info">' +
                 '<div class="panel-heading">' +
                 '<button type="button" class="close" id="kill_stream">×</button>' +
+                '<button type="button" class="minimize" id="minimize_stream">–</button>' +
                 '<h3 class="panel-title"><span class="fa fa-file-audio-o"></span> Stream</h3>' +
                 '</div>' +
                 '<div class="panel-body-nopadding">' +
@@ -39,6 +40,21 @@ function streambttns() {
             $("#kill_stream").click(function () {
                 $("#stream_bar").remove();
                 $(window.last_bttn).removeAttr('disabled');
+            });
+            $("#minimize_stream").click(function () {
+                if($(this).text() === "–") {
+                    if(window.innerWidth <= 768) {
+                        $("#stream_bar").css('bottom', '-180px');
+                    } else {
+                        $("#stream_bar").css('bottom', '-300px');
+                    }
+                $(this).text("⁺");
+                    window.stream_minimized = true;
+                } else {
+                $("#stream_bar").css('bottom', '0px');
+                $(this).text("–");
+                    window.stream_minimized = false;
+                }
             });
         } else {
             $(window.last_bttn).removeAttr('disabled');
@@ -147,8 +163,17 @@ function search() {
 
 
 window.addEventListener("DOMContentLoaded", function () {
+    window.stream_minimized = false;
     getDlBttns();
     getInfoBttns();
-    getStreamBttns()
+    getStreamBttns();
     search();
+    window.addEventListener('resize', function () {
+        if(window.stream_minimized === true && window.innerWidth <= 768) {
+         $("#stream_bar").css('bottom', '-180px');
+        }
+        if(window.stream_minimized === true && window.innerWidth > 768) {
+         $("#stream_bar").css('bottom', '-300px');
+        }
+    });
 });
