@@ -4,66 +4,88 @@
 
 {% block page_content %}
     <div class="container">
-    <div class="page-header">
+        <div class="page-header">
             <h1>Search results</h1>
-        <span class="glyphicon glyphicon-filter"></span> Filter: <input id="search_ex" placeholder="None, start by entering a word" class="form-control-custom-3 input-sm-shl" type="text">
-    </div>
-    </div>
-    <div class="container">
-    <div class="row">
-        <div class="col-lg-12">
-            <table id="results_table" class="table table-hover">
-                <thead>
-                <tr>
-                    <th class="col-lg-8">Title</th>
-                    <th class="col-lg-4 text-right">Options</th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for i in srchquery %}
-                    {% set row = loop %}
-                    <tr id="{{ row.index - 1 }}-min-row">
-                        <td>{{ i }}</td>
-                        <td class="text-right">
-                            <button type="submit" value="{{ i }}" class="btn btn-primary btn-xs" id="{{ row.index - 1 }}dlbttn">Download
-                            </button>
-                            <button type="submit" value="{{ i }}" class="btn btn-purple btn-xs" id="{{ row.index - 1 }}-sbutton">Stream
-                            </button>
-                            <button type="submit" value="{{ i }}" class="btn btn-info btn-xs" id="{{ row.index - 1 }}-button">More info
-                            </button>
-                        </td>
-                    </tr>
-                    <tr id="{{ row.index - 1}}" style="display: none">
-                        <td class="fontsize-12"><img name="cover_pic" alt="album_pic" id="{{ row.index - 1 }}-cover"
-                                                         src="/static/img/100.png"
-                                                         class="more_info_pic"><table class="inline_media_table">
-                        <thead>
-                        <tr>
-                            <th>Info</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr><td id="{{ row.index - 1 }}-release">Release date: <i class="fa fa-circle-o-notch fa-spin"></i></td></tr>
-                        <tr><td id="{{ row.index - 1 }}-tags">Tags: <i class="fa fa-circle-o-notch fa-spin"></i></td></tr>
-                        <tr><td id="{{ row.index - 1 }}-similar">Similar artists: <i class="fa fa-circle-o-notch fa-spin"></i></td></tr>
-                        </tbody>
-                        </table>
-                    </td>
-                    <td class="fontsize-12">
-                    <table>
-                        <thead>
-                        <tr>
-                            <th>Track list</th>
-                        </tr>
-                        </thead>
-                        <tbody id="{{ row.index - 1 }}-tracks" class="tracklist media_custom">
-                    </table></td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
+            <span class="glyphicon glyphicon-filter"></span> Filter: <input id="search_ex"
+                                                                            placeholder="None, start by entering a word"
+                                                                            class="form-control-custom-3 input-sm-shl"
+                                                                            type="text">
         </div>
     </div>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <table id="results_table" class="table table-hover">
+                    <thead>
+                    <tr>
+                        <th class="col-lg-8">Title</th>
+                        <th class="col-lg-4 text-right">Options</th>
+                    </tr>
+                    </thead>
+                    <tbody id="rslt_body">
+                    {% for i in srchquery %}
+                        {% set row = loop %}
+                        <tr id="{{ row.index - 1 }}-min-row">
+                            <td>{{ i }}</td>
+                            <td class="text-right">
+                                <button type="submit" value="{{ i }}" class="btn btn-primary btn-xs"
+                                        id="{{ row.index - 1 }}dlbttn">Download
+                                </button>
+                                <button type="submit" value="{{ i }}" class="btn btn-purple btn-xs"
+                                        id="{{ row.index - 1 }}-sbutton">Stream
+                                </button>
+                                <button type="submit" value="{{ i }}" class="btn btn-info btn-xs"
+                                        id="{{ row.index - 1 }}-button">More info
+                                </button>
+                            </td>
+                        </tr>
+                        <tr id="{{ row.index - 1 }}" style="display: none">
+                            <td class="fontsize-12"><img name="cover_pic" alt="album_pic" id="{{ row.index - 1 }}-cover"
+                                                         src="/static/img/100.png"
+                                                         class="more_info_pic">
+                                <table class="inline_media_table">
+                                    <thead>
+                                    <tr>
+                                        <th>Info</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr>
+                                        <td id="{{ row.index - 1 }}-release">Release date: <i
+                                                class="fa fa-circle-o-notch fa-spin"></i></td>
+                                    </tr>
+                                    <tr>
+                                        <td id="{{ row.index - 1 }}-tags">Tags: <i
+                                                class="fa fa-circle-o-notch fa-spin"></i></td>
+                                    </tr>
+                                    <tr>
+                                        <td id="{{ row.index - 1 }}-similar">Similar artists: <i
+                                                class="fa fa-circle-o-notch fa-spin"></i></td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                            <td class="fontsize-12">
+                                <table>
+                                    <thead>
+                                    <tr>
+                                        <th>Track list</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="{{ row.index - 1 }}-tracks" class="tracklist media_custom">
+                                </table>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                {% if search_type == "lastfm" %}
+                    <button class="btn btn-primary center-block" id="more_bttn_l" value="more/50/25">Load more</button>
+                {% else %}
+                    <button class="btn btn-primary center-block" id="more_bttn_d" value="more/2">Load more</button>
+            {% endif %}
+            </div>
+        </div>
     </div>
 {% endblock %}
 

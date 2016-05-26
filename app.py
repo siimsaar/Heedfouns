@@ -158,7 +158,7 @@ def search():
     return redirect(url_for('search_results', message=message))
 
 
-@app.route('/results/<message>')
+@app.route('/results/<message>/')
 @login_required
 def search_results(message):
     srchquery = []
@@ -175,23 +175,44 @@ def search_results(message):
     db.session.add(Search(search_term=message, user=g.user))
     g.user.searches_num += 1
     db.session.commit()
-    return render_template("search.html", srchquery=srchquery)
+    return render_template("search.html", srchquery=srchquery, search_type=search_provider)
 
 
-def discogs_search(message, srchquery):
+def discogs_search(message, srchquery, page=1):
     discg = discogs_client.Client('app/0.1', user_token=USER_TOKEN)
-    db_search = discg.search(string.capwords(message), type='artist')[0].releases.page(1)
-    srchquery.append(string.capwords(message) + " - Discography")
+    db_search = discg.search(string.capwords(message), type='artist')[0].releases.page(page)
     for i in xrange(0, len(db_search)):
         srchquery.append(string.capwords(message) + " - " + db_search[i].title)
 
 
-def lastfm_search(message, srchquery, covers):
+def lastfm_search(message, srchquery, covers, amount=0, start=0):
     lfm = pylast.LastFMNetwork(api_key=API_KEY)
-    artist = lfm.get_artist(message).get_top_albums(limit=25)
-    for i in artist:
-        if not str(i[0]).decode('utf-8').split(" - ")[1] == "(null)":
-            srchquery.append(str(i[0]).decode('utf-8'))
+    if amount == 0:
+        artist = lfm.get_artist(message).get_top_albums(limit=25)
+        for i in artist:
+            if not str(i[0]).decode('utf-8').split(" - ")[1] == "(null)":
+                srchquery.append(str(i[0]).decode('utf-8'))
+    else:
+        artist = lfm.get_artist(message).get_top_albums(limit=amount)
+        for i in xrange(start, len(artist)):
+            if not str(artist[i][0]).decode('utf-8').split(" - ")[1] == "(null)":
+                srchquery.append(str(artist[i][0]).decode('utf-8'))
+
+
+@app.route('/results/<message>/more/<int:amount>/<int:start>')
+@app.route('/results/<message>/more/<int:page>')
+@login_required
+def more(message, amount=0, start=0, page=0):
+    srchquery = []
+    covers = []
+    try:
+        if page == 0:
+            lastfm_search(message, srchquery, covers, amount=amount, start=start)
+        else:
+            discogs_search(message, srchquery, page=page)
+    except (IndexError, pylast.WSError):
+        return "", 401
+    return render_template("loadmore_template.html", start=start, srchquery=srchquery)
 
 
 @app.route('/auto', methods=['GET', 'POST', 'DELETE'])

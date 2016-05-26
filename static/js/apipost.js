@@ -12,6 +12,7 @@ function noEmptySearch() {
 window.addEventListener("DOMContentLoaded", function () {
     $("#refresh").click(function () {
         var spinner = $(this).children();
+        $(this).blur();
         $(spinner).attr('class', 'fa fa-refresh fa-spin fa-2x');
         $.get("./refresh").done(function (data) {
             $("#suggestion_block").html(data);

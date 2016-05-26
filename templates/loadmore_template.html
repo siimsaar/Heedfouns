@@ -1,0 +1,49 @@
+{% for i in srchquery %}
+    {% set row = loop %}
+    <tr id="{{ start + row.index - 1 }}-min-row">
+        <td>{{ i }}</td>
+        <td class="text-right">
+            <button type="submit" value="{{ i }}" class="btn btn-primary btn-xs" id="{{ start + row.index - 1 }}dlbttn">Download
+            </button>
+            <button type="submit" value="{{ i }}" class="btn btn-purple btn-xs" id="{{ start + row.index - 1 }}-sbutton">Stream
+            </button>
+            <button type="submit" value="{{ i }}" class="btn btn-info btn-xs" id="{{ start + row.index - 1 }}-button">More info
+            </button>
+        </td>
+    </tr>
+    <tr id="{{ start + row.index - 1 }}" style="display: none">
+        <td class="fontsize-12"><img name="cover_pic" alt="album_pic" id="{{ start + row.index - 1 }}-cover"
+                                     src="/static/img/100.png"
+                                     class="more_info_pic">
+            <table class="inline_media_table">
+                <thead>
+                <tr>
+                    <th>Info</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td id="{{ start + row.index - 1 }}-release">Release date: <i class="fa fa-circle-o-notch fa-spin"></i></td>
+                </tr>
+                <tr>
+                    <td id="{{ start + row.index - 1 }}-tags">Tags: <i class="fa fa-circle-o-notch fa-spin"></i></td>
+                </tr>
+                <tr>
+                    <td id="{{ start + row.index - 1 }}-similar">Similar artists: <i class="fa fa-circle-o-notch fa-spin"></i>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="fontsize-12">
+            <table>
+                <thead>
+                <tr>
+                    <th>Track list</th>
+                </tr>
+                </thead>
+                <tbody id="{{ start + row.index - 1 }}-tracks" class="tracklist media_custom">
+            </table>
+        </td>
+    </tr>
+{% endfor %}

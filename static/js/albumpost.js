@@ -147,7 +147,7 @@ function moreinfo(bttn, artist, album) {
 
 function search() {
     $("#search_ex").keyup(function () {
-        for (var i = 0; i < 25; i++) {
+        for (var i = 0; i < window.results_amount; i++) {
             if ($('#' + String(i) + '-min-row td:first').text().toLowerCase().indexOf($(this).val().toLowerCase()) === -1) {
                 $('#' + String(i) + '-min-row').hide();
                 $('#' + String(i)).hide();
@@ -161,9 +161,58 @@ function search() {
     });
 }
 
+function more_bttn_l() {
+    $("#more_bttn_l").on('click', function (e) {
+        var _self = this;
+        var start_val = parseInt($(this).val().split("/")[2]);
+        var more_val = parseInt($(this).val().split("/")[1]);
+        $(this).attr('class', 'btn-flat btn-link text-info center-block');
+        $(this).empty().append('<span class="fa fa-spinner fa-pulse fa-2x">').blur();
+        $.get($(this).val()).done(function (data) {
+            $("#rslt_body").append(data);
+            $(_self).attr('class', 'btn btn-primary center-block');
+            $(_self).empty().append('Load more');
+            more_val += 25;
+            start_val += 25;
+            $(_self).val("more/" + more_val + "/" + start_val);
+            window.results_amount += 25;
+            $("#search_ex").trigger('keyup');
+            getallButtons();
+        });
+    });
+}
+
+function more_bttn_d() {
+    $("#more_bttn_d").on('click', function (e) {
+        var _self = this;
+        var page = parseInt($(this).val().split("/")[1]);
+        $(this).attr('class', 'btn-flat btn-link text-info center-block');
+        $(this).empty().append('<span class="fa fa-spinner fa-pulse fa-2x">').blur();
+        $.get($(this).val()).done(function (data) {
+            $("#rslt_body").append(data);
+            $(_self).attr('class', 'btn btn-primary center-block');
+            $(_self).empty().append('Load more');
+            page += 1;
+            $(_self).val("more/" + page);
+            window.results_amount += 50;
+            $("#search_ex").trigger('keyup');
+            getallButtons();
+        });
+    });
+}
+
+function getallButtons() {
+    getDlBttns();
+    getInfoBttns();
+    getStreamBttns();
+    search();
+}
 
 window.addEventListener("DOMContentLoaded", function () {
     window.stream_minimized = false;
+    window.results_amount = 50;
+    more_bttn_l();
+    more_bttn_d();
     getDlBttns();
     getInfoBttns();
     getStreamBttns();
