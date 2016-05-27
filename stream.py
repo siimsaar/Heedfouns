@@ -37,9 +37,9 @@ def youtube_search(term, failed_playlist=False):
                                                                   maxResults=50).execute()
         title = playlistitems_list_request["items"][0]["snippet"]["title"]
         video_id = playlistitems_list_request["items"][0]["snippet"]["resourceId"]["videoId"]
-        return "https://www.youtube.com/embed/%s?list=%s&autoplay=1&loop=1" % (video_id, playlists[0])
+        return "https://www.youtube.com/embed/%s?list=%s&autoplay=1&loop=1&iv_load_policy=3" % (video_id, playlists[0])
     elif len(playlists) == 0 and failed_playlist is False:
         return youtube_search(term, failed_playlist=True)
     else:
-        return "https://www.youtube.com/embed/%s?rel=0&autoplay=1" % (videos[0])
+        return "https://www.youtube.com/embed/%s?rel=0&autoplay=1&iv_load_policy=3" % (videos[0])
 
