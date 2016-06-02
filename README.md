@@ -12,5 +12,4 @@
 * Gunicorn w/ async workers
 * Gevent
 * Flask-SSE
-* Phantomjs 2.x
 * Sqlite

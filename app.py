@@ -21,7 +21,7 @@ from flask.ext.sse import sse, send_event
 from lxml import etree
 from flask_wtf.csrf import CsrfProtect
 import conf
-import torrentdler
+import torrentdler_v2
 import auto
 import logger
 import logging
@@ -372,9 +372,9 @@ def download(name=None, sse_id=None):
 
 def initDl(q):
     while True:
-        dlalbum = torrentdler.TorrentDl(
-            conf.rutracker_user,
-            conf.rutracker_password,
+        dlalbum = torrentdler_v2.Downloader(
+            user_rutracker=conf.rutracker_user,
+            password_rutracker=conf.rutracker_password,
             transmission_user=conf.transmission_user,
             transmission_password=conf.transmission_password,
             qbittorrent_user=conf.qbittorrent_user,
@@ -382,18 +382,17 @@ def initDl(q):
             transmission_url=conf.transmission_url,
             qbittorrent_url=conf.qbittorrent_url,
             jpopsuki_user=conf.jpopsuki_user,
-            jpopsuki_password=conf.jpopsuki_password)
+            jpopsuki_password=conf.jpopsuki_password,
+            client=conf.torrent_client)
         data = q.get()
         result = data[0]
         user = data[1]
         id = data[2]
-        print q.unfinished_tasks
         with app.app_context():
             pushtoProgress(result)
-        logging.info("USER: %s | ALBUM ADDED: %s" % (user, result))
+        print ("USER: %s | ALBUM ADDED: %s" % (user, result))
         try:
-            dlalbum.getCookies()
-            dlalbum.getAlbums(result, client=conf.torrent_client)
+            dlalbum.handleDl(result)
             rq_album = Album(result, "Added")
             try:
                 succeess_album = QueueAlbum.query.filter_by(album_name=result).first()

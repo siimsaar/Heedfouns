@@ -1,26 +1,20 @@
 # -*- coding: utf-8 -*-
-import transmissionrpc
-import ast
-import os
-import sys
-import time
-from retry import retry
+
 import requests
+import itertools
+from lxml import etree
 import traceback
+import urllib2
 from urllib import quote_plus
-from selenium import webdriver
+from bs4 import BeautifulSoup
+import transmissionrpc
 from qbittorrent import Client
-from selenium.common.exceptions import NoSuchElementException
+import os
 
-driver = webdriver.PhantomJS(desired_capabilities={'phantomjs.page.settings.loadImages': "false"})
-magnet_prefix = "magnet:?xt=urn:btih:"
-types = {"FLAC", "ALAC", "AAC", "MP3"}
 
-albums = []
-jlogged = False
+class Downloader:
 
-class TorrentDl():
-    def __init__(self, user_rutracker=None,
+    def __init__(self, client, magnet_link=None, user_rutracker=None,
                  password_rutracker=None,
                  transmission_user=None,
                  transmission_password=None,
@@ -42,224 +36,277 @@ class TorrentDl():
         self.transmission_url = transmission_url
         self.jpopsuki_user = jpopsuki_user
         self.jpopsuki_password = jpopsuki_password
+        self.magnet_link = magnet_link
+        self.client = client
 
-    def logIn(self):
-        driver.get('http://login.rutracker.org/forum/login.php')
-        username = driver.find_element_by_xpath(
-            r'//*[@id="login-form-full"]/table/tbody/tr[2]/td/div/table/tbody/tr[1]/td[2]/input')
-        password = driver.find_element_by_xpath(
-            r'//*[@id="login-form-full"]/table/tbody/tr[2]/td/div/table/tbody/tr[2]/td[2]/input')
-
-        username.send_keys(self.user_rutracker)
-        password.send_keys(self.password_rutracker)
-
-        if self.check_exists_by_xpath(
-                r'//*[@id="login-form"]/table/tbody/tr[2]/td/div/table/tbody/tr[3]/td[2]/div[1]/img'):
-            print "✗ Too many invalid logins, captcha found."
-            self.tearDown()
-        else:
-            driver.find_element_by_xpath(
-                r'//*[@id="login-form-full"]/table/tbody/tr[2]/td/div/table/tbody/tr[4]/td/input').click()
-        if driver.get_cookie("bb_data") is not None:
-            print "✓ Successfully logged in, saving cookie"
-            open("cookie.dat", 'w').write(str(driver.get_cookie("bb_data")))
-        else:
-            print "✗ Invalid ruTracker login data"
-            raise ValueError("Unable to log in")
-
-    def getAlbums(self, album, client):
-        print "• Searching for torrents"
-        driver.get('http://rutracker.org')
-        try:
-            search = driver.find_element_by_css_selector('#search-text')
-        except:
-            print "✗ Corrupt or expired cookie"
-            self.logIn()
-            search = driver.find_element_by_css_selector('#search-text')
-        search_bttn = driver.find_element_by_css_selector('#search-submit')
-        search.send_keys(album)
-        search_bttn.click()
-        torrents = driver.find_elements_by_xpath("//a[@class='med tLink hl-tags bold']")
-        size = driver.find_elements_by_xpath("//a[@class='small tr-dl dl-stub']")
-        seedcount = list()
-        for y in xrange(1, len(torrents) + 1):
+    def handleDl(self, album):
+        if self.user_rutracker != "" or self.password_rutracker != "":
+            print "RuTracker search..."
+            ru = Rutracker(quality="ANY", search_term=album, user=self.user_rutracker,
+                           password=self.password_rutracker)
             try:
-                seedcount.append(
-                    driver.find_element_by_xpath("//*[@id='tor-tbl']/tbody/tr[" + str(y) + "]/td[7]/b").text)
-            except NoSuchElementException:
-                seedcount.append("DEAD")
-        for i in xrange(0, len(torrents)):
-            for k in types:
-                if album.encode('utf-8').lower() in torrents[i].text.encode(
-                        'utf-8').lower():  # filter everything out that doesnt match the exact searched string
-                    if k in torrents[i].text:
-                        if seedcount[i] is not "DEAD":
-                            print "%d | %s [QUALITY = %s | SEEDS = %s | SIZE = %s]" % (
-                                i + 1, torrents[i].text, k, seedcount[i], size[i].text)
-        try:
-            torrents[0].click()
-            dl_link = "magnet:?xt=urn:btih:" + driver.find_element_by_xpath(r'//*[@id="tor-hash"]').text
-            try:
-                self.establishRPC(dl_link, client)
-            except:
-                #traceback.print_exc()
-                print "✗ Unable to establish connection"
-                raise IOError
-        except IOError:
-            raise IOError  # real ugly stuff
-        except:
-            print "✗ No torrents found in ruTracker"
-            if self.fallback:
+                ru.log_in()
+                ru.search()
+                self.establishRPC(client=self.client, type="torrent")
+            except ReferenceError:
                 try:
-                    self.fallback_tracker(client, album)
+                    if self.fallback:
+                        print "Kickass search..."
+                        kat = Kickass(quality="ANY", search_term=album)
+                        kat_mag = kat.search()
+                        self.establishRPC(client=self.client, magnet_link=kat_mag)
                 except ReferenceError:
-                    raise ReferenceError # real ugly stuff
-                except:
-                    print "✗ Unable to establish connection"
-                    raise IOError
+                    if self.jpopsuki_password != "" or self.jpopsuki_user != "":
+                        try:
+                            print "Jpopsuki search..."
+                            jp = Jpop(quality="ANY", search_term=album,
+                                      user=self.jpopsuki_user, password=self.jpopsuki_password)
+                            jp.log_in()
+                            jp.search()
+                            self.establishRPC(client=self.client, type="torrent")
+                        except ReferenceError:
+                            print "Couldnt find anything"
+                            raise ReferenceError
+        else:
+            print "Conf prob"
+            raise ValueError
 
-    def fallback_tracker(self, client, album):
-        print "• Searching from Kickass"
-        try:
-            uq_artist = quote_plus(album.split(" - ")[0].encode('utf-8'))
-            uq_album = quote_plus(album.split(" - ")[1].encode('utf-8'))
-            driver.get('https://kat.cr/usearch/' + uq_artist + '%20' + uq_album + '%20category:music/')
-            try:
-                seed_count = driver.find_element_by_css_selector('.green.center')
-            except:
-                print "✗ No torrents found in Kickass"
-                raise Exception
-            if seed_count <= 0:
-                print "Torrents are all dead"
-                raise Exception
-            magnet_hash = driver.find_elements_by_class_name('icon16')
-            magnet_hash_href = magnet_hash[0].get_attribute('href')
-            if magnet_hash_href.split(":")[0] == "magnet":
-                print "successfully obtained magnet"
-                try:
-                    self.establishRPC(magnet_hash_href, client)
-                except:
-                    traceback.print_exc()
-                    raise IOError
-            else:
-                raise Exception
-        except IOError:
-            raise IOError
-        except:
-            #traceback.print_exc()
-            print "✗ No torrents found in Kickass"
-            try:
-                if self.jpopsuki_user == "" or self.jpopsuki_password == "":
-                    print "no login data for jpopsuki"
-                    raise Exception
-                print "• Searching from Jpopsuki"
-                global jlogged
-                if jlogged is False:
-                    self.login_forjpop()
-                self.jpopsuki(client, album)
-            except:
-                print "✗ Jpopsuki search failed"
-                #traceback.print_exc()
-                raise ReferenceError
-
-    def establishRPC(self, magnet_link, client, type="magnet"):
+    def establishRPC(self, client, magnet_link=None, type="magnet"):
         print "• Establishing connection to", client
-        if client == "transmission":
-            tc = transmissionrpc.Client(self.transmission_url.split(":")[0],
-                                        port=self.transmission_url.split(":")[1],
-                                        user=self.transmission_user,
-                                        password=self.transmission_password)
-            if type == "magnet":
-                print "• Adding magnet to", client
-                tc.add_torrent(magnet_link)
-            else:
-                print "• Adding torrent to", client
-                tc.add_torrent('file://' + os.path.abspath('torrent.torrent'))
-        elif client == "qbittorrent":
-            qb = Client(self.qbittorrent_url)
-            qb.login(self.qbittorrent_user, self.qbittorrent_password)
-            if qb._is_authenticated is True:
+        try:
+            if client == "transmission":
+                tc = transmissionrpc.Client(self.transmission_url.split(":")[0],
+                                            port=self.transmission_url.split(":")[1],
+                                            user=self.transmission_user,
+                                            password=self.transmission_password)
                 if type == "magnet":
                     print "• Adding magnet to", client
-                    qb.download_from_link(magnet_link)
+                    tc.add_torrent(magnet_link)
                 else:
                     print "• Adding torrent to", client
-                    qb.download_from_file(file('torrent.torrent'))
-
-    def tearDown(self):
-        driver.quit()
-
-    def getCookies(self):
-        try:
-            driver.get('http://rutracker.org')
+                    tc.add_torrent('file://' + os.path.abspath('torrent.torrent'))
+            elif client == "qbittorrent":
+                qb = Client(self.qbittorrent_url)
+                qb.login(self.qbittorrent_user, self.qbittorrent_password)
+                if qb._is_authenticated is True:
+                    if type == "magnet":
+                        print "• Adding magnet to", client
+                        qb.download_from_link(magnet_link)
+                    else:
+                        print "• Adding torrent to", client
+                        qb.download_from_file(file('torrent.torrent'))
         except:
+            traceback.print_exc()
+            raise IOError
+
+
+class Rutracker:
+
+    def __init__(self, quality, search_term, user, password):
+        self.quality = quality
+        self.search_term = search_term
+        self.user = user
+        self.password = password
+
+
+    sess = requests.session()
+    sort = "prev_new=0&prev_oop=0&f%5B%5D=-1&o=10&s=2&pn="  # sort by seeds
+
+    def log_in(self):
+        loginpage = 'http://login.rutracker.org/forum/login.php'
+        post_params = {
+            'login_username': self.user,
+            'login_password': self.password,
+            'login': b'\xc2\xf5\xee\xe4'
+        }
+        post_l = self.sess.post(loginpage, post_params)
+        try:
+            self.sess.cookies['bb_data']
+        except:
+            print "Unable to log in"
+
+    def search(self):
+        uq_artist = ""
+        try:
+            uq_artist = self.search_term.split(" - ")[0].decode('ascii')
+        except:
+            for c in self.search_term.split(" - ")[0]:
+                if ord(c) > 128:
+                    uq_artist += format(" %s " % str(ord(c)))
+                else:
+                    uq_artist += c
+        print uq_artist
+        uq_album = quote_plus(self.search_term.split(" - ")[1].encode('utf-8'))
+        url = "http://rutracker.org/forum/tracker.php?&" + self.sort + "&nm="
+        search = self.sess.get(url + uq_artist + " " + uq_album).text
+        print url+uq_artist+" "+uq_album
+        parser = etree.HTMLParser()
+        tree = etree.fromstring(search, parser)
+        # print search
+        results = {}
+        results_len = len(tree.xpath("//a[@class='med tLink hl-tags bold']"))
+        for i in xrange(1, results_len + 1):
             try:
-                self.getCookies()
+                if results_len == 1:
+                    title = tree.xpath('//*[@id="tor-tbl"]/tbody/tr/td[4]/div[1]/a')[0].text
+                else:
+                    title = tree.xpath('//*[@id="tor-tbl"]/tbody/tr[%s]/td[4]/div[1]/a' % (i))[0].text
+                try:
+                    if results_len == 1:
+                        dl_link = tree.xpath('//*[@id="tor-tbl"]/tbody/tr/td[6]/a//@href')[0]
+                    else:
+                        dl_link = tree.xpath('//*[@id="tor-tbl"]/tbody/tr[%s]/td[6]/a//@href' % (i))[0]
+                except:
+                    traceback.print_exc()
+                    dl_link = "DEAD"
+                results[i] = {"title": title,
+                              "dl_link": "http://rutracker.org/forum/" + dl_link}
             except:
-                pass
-        if os.path.exists('cookie.dat'):
-            f = open('cookie.dat', "r")
-            cookie = ast.literal_eval(f.read())
-            driver.add_cookie(cookie)
-            print "✓ Cookie added successfully"
+                traceback.print_exc()
+        if len(results) == 0:
+            raise ReferenceError
+        for i in xrange(1, len(results) + 1):
+            if self.quality in results[i]['title'] or self.quality == "ANY":
+                if self.search_term.lower() in results[1]['title'].lower():
+                    print results[i]['title']
+        if self.search_term.lower() in results[1]['title'].lower():
+            self.downloadTorrent(results[1]['dl_link'])
         else:
-            print "✗ No cookie found, generating one"
-            self.logIn()
+            raise ReferenceError
 
-    #@retry(tries=5)
-    def jpopsuki(self, client, album):
-        driver.get('http://jpopsuki.eu/torrents.php')
-        srch_field = driver.find_element_by_xpath('//*[@id="search_box"]/div/div/table[1]/tbody/tr[1]/td[2]/input')
-        srch_field.send_keys(album.replace("-", ""))
-        album_chooser = driver.find_element_by_xpath('//*[@id="cat_1"]')
-        album_chooser.click()
-        search = driver.find_element_by_xpath('//*[@id="search_box"]/div/div/div/input[1]')
-        search.click()
-        while True:
-            if "none" in str(driver.find_element_by_xpath('//*[@id="ajax_torrents"]').get_attribute('style')):
-                continue
-            else:
-                break
+    def downloadTorrent(self, url):
         try:
-            torrent_loc = driver.find_element_by_xpath('//*[@id="torrent_table"]/tbody/tr[3]/td[1]/a')
-            torrent_loc.click()
-            dl_link = driver.find_element_by_xpath(
-            '//*[@id="content"]/div/div[2]/table/tbody/tr[2]/td[1]/span/a[1]').get_attribute('href')
+            print url
+            tfile = self.sess.get(url)
+            with open('torrent.torrent', 'wb') as output:
+                output.write(tfile.content)
         except:
-            dl_link = driver.find_element_by_xpath('//*[@id="torrent_table"]/tbody/tr[2]/td[4]/span/a[1]').get_attribute('href')
-        #print dl_link
-        f = open('cookie_jpop.dat', "r")
-        cookie = ast.literal_eval(f.read())
-        tfile = requests.get(dl_link, cookies=f)
-        f.close()
-        with open('torrent.torrent', 'wb') as output:
-            output.write(tfile.content)
-            output.close()
-        self.establishRPC(magnet_link=None, client=client, type="torrent")
+            traceback.print_exc()
 
-    @retry(tries=2)
-    def login_forjpop(self):
-        driver.get("http://jpopsuki.eu/login.php")
-        usr_field = driver.find_element_by_xpath('//*[@id="username"]')
-        pwd_field = driver.find_element_by_xpath('//*[@id="password"]')
-        rmb_field = driver.find_element_by_xpath('//*[@id="loginform"]/table/tbody/tr[3]/td/input')
-        smbit = driver.find_element_by_xpath('//*[@id="loginform"]/table/tbody/tr[4]/td/input')
-        usr_field.send_keys(self.jpopsuki_user)
-        pwd_field.send_keys(self.jpopsuki_password)
-        rmb_field.click()
-        smbit.click()
-        if(str(driver.current_url) == "http://jpopsuki.eu/index.php"):
-            print "Successfully logged into jpopsuki"
-            open("cookie_jpop.dat", 'w').write(str(driver.get_cookie("PHPSESSID")))
-            global jlogged
-            jlogged = True
-        else:
-            print "Jpopsuki login failed"
-            raise Exception
+class Kickass:
 
-    def check_exists_by_xpath(self, xpath):
+    def __init__(self, quality, search_term):
+        self.quality = quality
+        self.search_term = search_term
+
+    sess = requests.session()
+
+    def search(self):
+        for c in self.search_term:
+            if ord(c) > 255:
+                print "Kickass can't fucking search anything beyond extended ASCII"
+                raise ReferenceError
+        uq_artist = quote_plus(self.search_term.split(" - ")[0].encode('utf-8'))
+        uq_album = quote_plus(self.search_term.split(" - ")[1].encode('utf-8'))
+        url = 'http://kat.cr/usearch/' + uq_artist + '%20' + uq_album + '%20category:music/'
+        print url
+        search = self.sess.get(url).text
+        results = {}
+        soup = BeautifulSoup(search, 'html.parser')
+        table = soup.find("table", {"class": "data"})
         try:
-            driver.find_element_by_xpath(xpath)
-        except NoSuchElementException:
-            return False
-        return True
+            rows = table.findAll('tr')
+        except:
+            raise ReferenceError
+        for row in rows:
+            try:
+                album_n = row.findAll("a", {"class", "cellMainLink"})
+                album_m = row.findAll("a", {"class", "icon16"})
+                results[album_n[0].get_text()] = album_m[0]['href']
+            except AttributeError:
+                raise ReferenceError
+            except:
+                continue
+        for i,j in results.iteritems():
+            print i + j
+        return results.values()[0]
+
+
+class Jpop:
+
+    def __init__(self, quality, search_term, user, password):
+        self.quality = quality
+        self.search_term = search_term
+        self.user = user
+        self.password = password
+
+    sess = requests.session()
+
+    def log_in(self):
+        loginpage = 'http://jpopsuki.eu/login.php'
+        post_params = {
+            'username': self.user,
+            'password': self.password,
+            'login': "Log+In%21"
+        }
+        post_l = self.sess.post(loginpage, post_params, allow_redirects=True)
+        try:
+            self.sess.cookies['PHPSESSID']
+        except:
+            print "Unable to log in"
+
+    def search(self):
+        uq_artist = quote_plus(self.search_term.split(" - ")[0].encode('utf-8'))
+        uq_album = quote_plus(self.search_term.split(" - ")[1].encode('utf-8'))
+        url = "http://jpopsuki.eu/torrents.php?order_by=s6&order_way=DESC&searchstr="\
+              + uq_artist + "%20" + uq_album + "&filter_cat%5B1%5D=1"
+        search = self.sess.get(url).text
+        results = {}
+        soup = BeautifulSoup(search, 'html.parser')
+        table = soup.find("table", {"id": "torrent_table"})
+        try:
+            rows = table.findAll('tr', {'class': 'group_redline'})
+        except:
+            rows = ""
+        if len(rows) == 0:
+            try:
+                rows = table.findAll('tr', {'class': 'torrent_redline'})
+                for row in rows:
+                    data = row.find('a', {'rel': 'shadowbox'})
+                    name = data['title']
+                    dl_link = row.find('a', {'title': "Download"})['href']
+                    quality = row.find('a', {'title': "View Torrent"}).next_sibling.split("[")[1].split("/ ")[0]
+                    if len(results) == 0:
+                        results[name] = {"link_" + quality: "http://jpopsuki.eu/" + dl_link}
+                    else:
+                        results[name].update({"link_" + quality: "http://jpopsuki.eu/" + dl_link})
+            except:
+                raise ReferenceError
+        else:
+            for row in rows:
+                try:
+                    data = row.find('a', {'rel': 'shadowbox'})
+                    group_id = data['href'].split("/")[3].split(".")[0]
+                    name = data['title']
+                    try:
+                        class_name = "groupid_" + group_id
+                        links = table.findAll('tr', {'class': class_name})
+                        for i in links:
+                            dl_data = i.findAll('a')
+                            quality = dl_data[2].get_text(strip=True).split(" ")[0]
+                            dl_link = dl_data[0]['href']
+                            if len(results) == 0:
+                                results[name] = {"link_" + quality: "http://jpopsuki.eu/" + dl_link}
+                            else:
+                                results[name].update({"link_" + quality: "http://jpopsuki.eu/" + dl_link})
+                    except:
+                        continue
+                except:
+                    raise ReferenceError
+        if len(results) == 0:
+            raise ReferenceError
+        else:
+            try:
+                results.values()[0]['link_MP3']     # TODO
+            except:
+                raise ReferenceError
+            self.downloadTorrent(results.values()[0]['link_MP3'])
+
+    def downloadTorrent(self, url):
+        try:
+            print url
+            tfile = self.sess.get(url)
+            with open('torrent.torrent', 'wb') as output:
+                output.write(tfile.content)
+        except:
+            traceback.print_exc()
