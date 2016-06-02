@@ -21,7 +21,7 @@ from flask.ext.sse import sse, send_event
 from lxml import etree
 from flask_wtf.csrf import CsrfProtect
 import conf
-import torrentdler_v2
+import torrentdler
 import auto
 import logger
 import logging
@@ -372,7 +372,7 @@ def download(name=None, sse_id=None):
 
 def initDl(q):
     while True:
-        dlalbum = torrentdler_v2.Downloader(
+        dlalbum = torrentdler.Downloader(
             user_rutracker=conf.rutracker_user,
             password_rutracker=conf.rutracker_password,
             transmission_user=conf.transmission_user,
