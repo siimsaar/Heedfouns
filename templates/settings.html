@@ -28,11 +28,8 @@
                             </p>
                             <p>jpopsuki pw (optional): <input class="form-control" name="ju_p" type="password"
                                                               value="{{ jpop_p }}"></p>
-                            <p>
-                            <div class="radio">
-                                <h3>Torrent client:</h3>
-                                <div class="form-group">
-                                    Select: <select class="form-control" name="p_tc" id="tclient">
+                            <div class="form-group" style="margin-bottom: 0">
+                                <p>Torrent client: <select class="form-control" name="p_tc" id="tclient">
                                     {% if torrent_client == "qbittorrent" %}
                                         <option>qbittorrent</option>
                                         <option>transmission</option>
@@ -41,7 +38,25 @@
                                         <option>qbittorrent</option>
                                     {% endif %}
                                 </select>
-                                </div>
+                                </p>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0">
+                                <p>Preferred quality: <select class="form-control" name="p_q" id="pquality">
+                                    {% if preferred_quality == "Lossless" %}
+                                        <option>Lossless</option>
+                                        <option>Lossy</option>
+                                        <option>Any</option>
+                                    {% elif preferred_quality == "Lossy" %}
+                                        <option>Lossy</option>
+                                        <option>Lossless</option>
+                                        <option>Any</option>
+                                    {% else %}
+                                        <option>Any</option>
+                                        <option>Lossless</option>
+                                        <option>Lossy</option>
+                                    {% endif %}
+                                </select>
+                                </p>
                             </div>
                         </div>
                         <div class="col-lg-6">

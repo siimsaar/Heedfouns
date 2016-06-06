@@ -120,7 +120,8 @@ def settings():
                                    jpop_u=conf.jpopsuki_user,
                                    jpop_p=conf.jpopsuki_password,
                                    reg_enabled=conf.reg_enabled,
-                                   settings_enabled=conf.hidd_settings)
+                                   settings_enabled=conf.hidd_settings,
+                                   preferred_quality=conf.pref_quality)
         else:
             try:
                 qbit_url = request.form['q_url']
@@ -136,7 +137,8 @@ def settings():
                                 request.form['ru_u'],
                                 request.form['ru_p'],
                                 request.form['j_u'],
-                                request.form['ju_p'], )
+                                request.form['ju_p'],
+                                request.form['p_q'])
             except:
                 traceback.print_exc()
             reload(conf)
@@ -383,7 +385,8 @@ def initDl(q):
             qbittorrent_url=conf.qbittorrent_url,
             jpopsuki_user=conf.jpopsuki_user,
             jpopsuki_password=conf.jpopsuki_password,
-            client=conf.torrent_client)
+            client=conf.torrent_client,
+            quality=conf.pref_quality)
         data = q.get()
         result = data[0]
         user = data[1]

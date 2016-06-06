@@ -5,11 +5,15 @@ import itertools
 from lxml import etree
 import traceback
 import urllib2
+import re
 from urllib import quote_plus
 from bs4 import BeautifulSoup
 import transmissionrpc
 from qbittorrent import Client
 import os
+
+FORMATS = {'LOSSY': ['MP3', 'AAC', 'OGG'],
+           'LOSSLESS': ['FLAC', 'ALAC', 'WAV', 'APE']}
 
 
 class Downloader:
@@ -24,7 +28,8 @@ class Downloader:
                  qbittorrent_url=None,
                  transmission_url=None,
                  jpopsuki_user=None,
-                 jpopsuki_password=None):
+                 jpopsuki_password=None,
+                 quality=None):
         self.user_rutracker = user_rutracker
         self.password_rutracker = password_rutracker
         self.transmission_user = transmission_user
@@ -38,11 +43,12 @@ class Downloader:
         self.jpopsuki_password = jpopsuki_password
         self.magnet_link = magnet_link
         self.client = client
+        self.quality = quality
 
     def handleDl(self, album):
         if self.user_rutracker != "" or self.password_rutracker != "":
             print "RuTracker search..."
-            ru = Rutracker(quality="ANY", search_term=album, user=self.user_rutracker,
+            ru = Rutracker(quality=self.quality, search_term=album, user=self.user_rutracker,
                            password=self.password_rutracker)
             try:
                 ru.log_in()
@@ -52,14 +58,14 @@ class Downloader:
                 try:
                     if self.fallback:
                         print "Kickass search..."
-                        kat = Kickass(quality="ANY", search_term=album)
+                        kat = Kickass(quality=self.quality, search_term=album)
                         kat_mag = kat.search()
                         self.establishRPC(client=self.client, magnet_link=kat_mag)
                 except ReferenceError:
                     if self.jpopsuki_password != "" or self.jpopsuki_user != "":
                         try:
                             print "Jpopsuki search..."
-                            jp = Jpop(quality="ANY", search_term=album,
+                            jp = Jpop(quality=self.quality, search_term=album,
                                       user=self.jpopsuki_user, password=self.jpopsuki_password)
                             jp.log_in()
                             jp.search()
@@ -67,6 +73,8 @@ class Downloader:
                         except ReferenceError:
                             print "Couldnt find anything"
                             raise ReferenceError
+                    else:
+                        raise ReferenceError
         else:
             print "Conf prob"
             raise ValueError
@@ -119,7 +127,11 @@ class Rutracker:
             'login_password': self.password,
             'login': b'\xc2\xf5\xee\xe4'
         }
-        post_l = self.sess.post(loginpage, post_params)
+        try:
+            post_l = self.sess.post(loginpage, post_params, timeout=10)
+        except requests.Timeout:
+            print "Post timed out, trying again"
+            self.log_in()
         try:
             self.sess.cookies['bb_data']
         except:
@@ -165,12 +177,14 @@ class Rutracker:
                 traceback.print_exc()
         if len(results) == 0:
             raise ReferenceError
-        for i in xrange(1, len(results) + 1):
-            if self.quality in results[i]['title'] or self.quality == "ANY":
-                if self.search_term.lower() in results[1]['title'].lower():
-                    print results[i]['title']
-        if self.search_term.lower() in results[1]['title'].lower():
-            self.downloadTorrent(results[1]['dl_link'])
+        for i in xrange(len(results)):
+                if self.quality.upper() != "ANY":
+                    if [results[i]['title'] for q in FORMATS[self.quality.upper()] if q in results[i]['title']]:
+                        self.downloadTorrent(results[i]['dl_link'])
+                        break
+                else:
+                    self.downloadTorrent(results[i]['dl_link'])
+                    break
         else:
             raise ReferenceError
 
@@ -208,18 +222,27 @@ class Kickass:
             rows = table.findAll('tr')
         except:
             raise ReferenceError
-        for row in rows:
+        for i, row in enumerate(rows):
             try:
-                album_n = row.findAll("a", {"class", "cellMainLink"})
-                album_m = row.findAll("a", {"class", "icon16"})
-                results[album_n[0].get_text()] = album_m[0]['href']
+                data = {
+                         "quality": row.findAll('span', id=re.compile('^cat_'))[0].findAll('a')[1].get_text(strip=True).upper(),
+                         "album_n": row.findAll("a", {"class", "cellMainLink"})[0].get_text(),
+                         "album_m": row.findAll("a", {"class", "icon16"})[0]['href']}
+                results[i] = data
             except AttributeError:
                 raise ReferenceError
             except:
                 continue
-        for i,j in results.iteritems():
-            print i + j
-        return results.values()[0]
+        if len(results) == 0:
+            raise ReferenceError
+        for i in xrange(len(results)):
+                if self.quality.upper() != "ANY":
+                    if [results[i]['quality'].upper() for q in FORMATS[self.quality.upper()] if q in results[i]['quality'].upper()]:
+                        return results[i]['album_m']
+                else:
+                    return results[i]['album_m']
+        else:
+            raise ReferenceError
 
 
 class Jpop:
@@ -261,15 +284,13 @@ class Jpop:
         if len(rows) == 0:
             try:
                 rows = table.findAll('tr', {'class': 'torrent_redline'})
-                for row in rows:
+                for idx, row in enumerate(rows):
                     data = row.find('a', {'rel': 'shadowbox'})
                     name = data['title']
                     dl_link = row.find('a', {'title': "Download"})['href']
                     quality = row.find('a', {'title': "View Torrent"}).next_sibling.split("[")[1].split("/ ")[0]
-                    if len(results) == 0:
-                        results[name] = {"link_" + quality: "http://jpopsuki.eu/" + dl_link}
-                    else:
-                        results[name].update({"link_" + quality: "http://jpopsuki.eu/" + dl_link})
+                    results[idx] = {"link": "http://jpopsuki.eu/" + dl_link,
+                                    "quality": quality}
             except:
                 raise ReferenceError
         else:
@@ -281,26 +302,31 @@ class Jpop:
                     try:
                         class_name = "groupid_" + group_id
                         links = table.findAll('tr', {'class': class_name})
-                        for i in links:
+                        for idx, i in enumerate(links):
                             dl_data = i.findAll('a')
                             quality = dl_data[2].get_text(strip=True).split(" ")[0]
                             dl_link = dl_data[0]['href']
-                            if len(results) == 0:
-                                results[name] = {"link_" + quality: "http://jpopsuki.eu/" + dl_link}
-                            else:
-                                results[name].update({"link_" + quality: "http://jpopsuki.eu/" + dl_link})
+                            results[idx] = {"link": "http://jpopsuki.eu/" + dl_link,
+                                            "quality": quality}
                     except:
+                        traceback.print_exc()
                         continue
                 except:
+                    traceback.print_exc()
                     raise ReferenceError
+        print results
         if len(results) == 0:
             raise ReferenceError
+        for i in xrange(len(results)):
+                if self.quality.upper() != "ANY":
+                    if [results[i]['quality'].upper() for q in FORMATS[self.quality.upper()] if q in results[i]['quality'].upper()]:
+                        self.downloadTorrent(results[i]['link'])
+                        break
+                else:
+                    self.downloadTorrent(results[i]['link'])
+                    break
         else:
-            try:
-                results.values()[0]['link_MP3']     # TODO
-            except:
-                raise ReferenceError
-            self.downloadTorrent(results.values()[0]['link_MP3'])
+            raise ReferenceError
 
     def downloadTorrent(self, url):
         try:
