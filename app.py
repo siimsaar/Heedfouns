@@ -192,12 +192,12 @@ def lastfm_search(message, srchquery, covers, amount=0, start=0):
     if amount == 0:
         artist = lfm.get_artist(message).get_top_albums(limit=25)
         for i in artist:
-            if not str(i[0]).decode('utf-8').split(" - ")[1] == "(null)":
+            if not str(i[0]).decode('utf-8').split(" - ")[1] in ['undefined', '(null)']:
                 srchquery.append(str(i[0]).decode('utf-8'))
     else:
         artist = lfm.get_artist(message).get_top_albums(limit=amount)
         for i in xrange(start, len(artist)):
-            if not str(artist[i][0]).decode('utf-8').split(" - ")[1] == "(null)":
+            if not str(artist[i][0]).decode('utf-8').split(" - ")[1] in ['undefined', '(null)']:
                 srchquery.append(str(artist[i][0]).decode('utf-8'))
 
 

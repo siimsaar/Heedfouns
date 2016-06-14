@@ -177,7 +177,7 @@ class Rutracker:
                 traceback.print_exc()
         if len(results) == 0:
             raise ReferenceError
-        for i in xrange(1, len(results) - 1):
+        for i in xrange(1, len(results)):
             print i
             if self.quality.upper() != "ANY":
                 if [results[i]['title'] for q in FORMATS[self.quality.upper()] if q in results[i]['title']]:
@@ -236,7 +236,7 @@ class Kickass:
                 continue
         if len(results) == 0:
             raise ReferenceError
-        for i in xrange(len(results)):
+        for i in xrange(1, len(results)):
                 if self.quality.upper() != "ANY":
                     if [results[i]['quality'].upper() for q in FORMATS[self.quality.upper()] if q in results[i]['quality'].upper()]:
                         return results[i]['album_m']
@@ -318,7 +318,7 @@ class Jpop:
         print results
         if len(results) == 0:
             raise ReferenceError
-        for i in xrange(len(results)):
+        for i in xrange(1, len(results)):
                 if self.quality.upper() != "ANY":
                     if [results[i]['quality'].upper() for q in FORMATS[self.quality.upper()] if q in results[i]['quality'].upper()]:
                         self.downloadTorrent(results[i]['link'])
