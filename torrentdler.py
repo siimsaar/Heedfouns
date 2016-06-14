@@ -177,14 +177,15 @@ class Rutracker:
                 traceback.print_exc()
         if len(results) == 0:
             raise ReferenceError
-        for i in xrange(len(results)):
-                if self.quality.upper() != "ANY":
-                    if [results[i]['title'] for q in FORMATS[self.quality.upper()] if q in results[i]['title']]:
-                        self.downloadTorrent(results[i]['dl_link'])
-                        break
-                else:
+        for i in xrange(1, len(results) - 1):
+            print i
+            if self.quality.upper() != "ANY":
+                if [results[i]['title'] for q in FORMATS[self.quality.upper()] if q in results[i]['title']]:
                     self.downloadTorrent(results[i]['dl_link'])
                     break
+            else:
+                self.downloadTorrent(results[i]['dl_link'])
+                break
         else:
             raise ReferenceError
 
