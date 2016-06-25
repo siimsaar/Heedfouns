@@ -55,7 +55,8 @@ def sug_generator(user, query_s):
                     app.db.session.commit()
                 except:
                     app.db.session.rollback()
-    logging.info("Suggestion update took:", app.datetime.now() - query_s)
+    runtime = str(app.datetime.now() - query_s)
+    logging.info("Suggestion update took: %s" % runtime)
 
 
 def check_existence(data, s_list, n, num_added):

@@ -176,6 +176,7 @@ class Rutracker:
             except:
                 traceback.print_exc()
         if len(results) == 0:
+            print "Rutracker search fail"
             raise ReferenceError
         for i in xrange(1, len(results)):
             print i
@@ -186,8 +187,6 @@ class Rutracker:
             else:
                 self.downloadTorrent(results[i]['dl_link'])
                 break
-        else:
-            raise ReferenceError
 
     def downloadTorrent(self, url):
         try:
@@ -235,6 +234,7 @@ class Kickass:
             except:
                 continue
         if len(results) == 0:
+            print "Kickass search fail"
             raise ReferenceError
         for i in xrange(1, len(results)):
                 if self.quality.upper() != "ANY":
@@ -242,8 +242,6 @@ class Kickass:
                         return results[i]['album_m']
                 else:
                     return results[i]['album_m']
-        else:
-            raise ReferenceError
 
 
 class Jpop:
@@ -317,6 +315,7 @@ class Jpop:
                     raise ReferenceError
         print results
         if len(results) == 0:
+            print "Jpopsuki search fail"
             raise ReferenceError
         for i in xrange(1, len(results)):
                 if self.quality.upper() != "ANY":
@@ -326,8 +325,6 @@ class Jpop:
                 else:
                     self.downloadTorrent(results[i]['link'])
                     break
-        else:
-            raise ReferenceError
 
     def downloadTorrent(self, url):
         try:
