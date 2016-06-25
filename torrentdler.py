@@ -159,6 +159,7 @@ class Rutracker:
         results_len = len(tree.xpath("//a[@class='med tLink hl-tags bold']"))
         for i in xrange(1, results_len + 1):
             try:
+                print results_len
                 if results_len == 1:
                     title = tree.xpath('//*[@id="tor-tbl"]/tbody/tr/td[4]/div[1]/a')[0].text
                 else:
@@ -178,7 +179,7 @@ class Rutracker:
         if len(results) == 0:
             print "Rutracker search fail"
             raise ReferenceError
-        for i in xrange(1, len(results)):
+        for i in xrange(1, len(results) + 1):
             print i
             if self.quality.upper() != "ANY":
                 if [results[i]['title'] for q in FORMATS[self.quality.upper()] if q in results[i]['title']]:
@@ -236,7 +237,7 @@ class Kickass:
         if len(results) == 0:
             print "Kickass search fail"
             raise ReferenceError
-        for i in xrange(1, len(results)):
+        for i in xrange(1, len(results) + 1):
                 if self.quality.upper() != "ANY":
                     if [results[i]['quality'].upper() for q in FORMATS[self.quality.upper()] if q in results[i]['quality'].upper()]:
                         return results[i]['album_m']
@@ -317,7 +318,7 @@ class Jpop:
         if len(results) == 0:
             print "Jpopsuki search fail"
             raise ReferenceError
-        for i in xrange(1, len(results)):
+        for i in xrange(1, len(results) + 1):
                 if self.quality.upper() != "ANY":
                     if [results[i]['quality'].upper() for q in FORMATS[self.quality.upper()] if q in results[i]['quality'].upper()]:
                         self.downloadTorrent(results[i]['link'])
