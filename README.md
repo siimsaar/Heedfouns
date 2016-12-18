@@ -1,4 +1,4 @@
-# untitled
+# Heedfouns
 
 ## Function
 * Automatically find torrents from Kickass/RuTracker/Jpopsuki and add them to your torrent client
